@@ -1,0 +1,11 @@
+finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
+F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
+F-003,synthetic-vendor,V-1003,CVE-2099-0001,ASSET-003,Medium,480,Moderate,2026-10-30T12:00:00Z,unknown,unknown,high,unknown
+F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
+F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+F-006,synthetic-vendor,V-1006,CVE-2099-0002,ASSET-006,Medium,600,Moderate,2026-10-30T12:00:00Z,confirmed_affected,internal,moderate,present
+F-007,synthetic-vendor,V-1007,CVE-2099-0002,ASSET-007,High,720,High,2026-10-30T12:00:00Z,unknown,public,high,unknown
+F-008,synthetic-vendor,V-1008,CVE-2099-0003,ASSET-008,High,700,High,2026-10-30T12:00:00Z,unknown,unknown,unknown,unknown
+F-009,synthetic-vendor,V-1009,CVE-2099-0003,ASSET-009,Low,210,Low,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
+F-010,synthetic-vendor,V-1010,CVE-2099-0002,ASSET-010,Medium,550,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,high,present

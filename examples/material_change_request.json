@@ -1,0 +1,48 @@
+{
+  "cve_id": "CVE-2099-0002",
+  "mode": "fixture",
+  "previous_snapshot": {
+    "cve_id": "CVE-2099-0002",
+    "retrieved_at": "2026-11-01T12:00:00Z",
+    "mode": "fixture",
+    "nvd": {
+      "status": "Analyzed",
+      "last_modified": "2026-11-01T10:00:00Z",
+      "cvss": {
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+      },
+      "configurations": [{"fixture": "affected versions 2.x"}]
+    },
+    "kev": {"listed": false},
+    "vulnrichment": null,
+    "unavailable_sources": [],
+    "provenance": []
+  },
+  "current_snapshot": {
+    "cve_id": "CVE-2099-0002",
+    "retrieved_at": "2026-11-06T12:00:00Z",
+    "mode": "fixture",
+    "nvd": {
+      "status": "Analyzed",
+      "last_modified": "2026-11-06T10:00:00Z",
+      "cvss": {
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+      },
+      "configurations": [{"fixture": "affected versions 2.x and 3.x"}]
+    },
+    "kev": {
+      "listed": true,
+      "date_added": "2026-11-05",
+      "due_date": "2026-11-26",
+      "required_action": "Apply mitigations or discontinue use."
+    },
+    "vulnrichment": {
+      "ssvc": {
+        "version": "2.0.3",
+        "options": [{"Exploitation": "active"}]
+      }
+    },
+    "unavailable_sources": [],
+    "provenance": []
+  }
+}

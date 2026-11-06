@@ -1,0 +1,41 @@
+{
+  "CVE-2099-0001": {
+    "nvd": {
+      "status": "Analyzed",
+      "published": "2099-01-02T00:00:00Z",
+      "last_modified": "2099-01-03T00:00:00Z",
+      "description": "Synthetic remote code execution fixture for deterministic demonstrations.",
+      "cvss": {"version": "3.1", "base_score": 9.8, "severity": "CRITICAL", "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "source": "fixture"},
+      "configurations": [{"fixture": "affected versions 1.x"}],
+      "references": []
+    },
+    "kev": {"listed": true, "date_added": "2099-01-05", "due_date": "2099-01-26", "required_action": "Apply mitigations or discontinue use.", "known_ransomware_campaign_use": "Unknown", "catalog_version": "fixture-1"},
+    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "active"}, {"Automatable": "yes"}, {"Technical Impact": "total"}]}}
+  },
+  "CVE-2099-0002": {
+    "nvd": {
+      "status": "Analyzed",
+      "published": "2099-02-01T00:00:00Z",
+      "last_modified": "2099-02-02T00:00:00Z",
+      "description": "Synthetic high-severity non-KEV fixture.",
+      "cvss": {"version": "3.1", "base_score": 8.1, "severity": "HIGH", "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H", "source": "fixture"},
+      "configurations": [{"fixture": "affected versions 2.x"}],
+      "references": []
+    },
+    "kev": {"listed": false, "catalog_version": "fixture-1"},
+    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "none"}, {"Automatable": "no"}, {"Technical Impact": "total"}]}}
+  },
+  "CVE-2099-0003": {
+    "nvd": {
+      "status": "Rejected",
+      "published": "2099-03-01T00:00:00Z",
+      "last_modified": "2099-03-04T00:00:00Z",
+      "description": "Synthetic rejected CVE fixture.",
+      "cvss": {"version": null, "base_score": null, "severity": null, "vector": null, "source": null},
+      "configurations": [],
+      "references": []
+    },
+    "kev": {"listed": false, "catalog_version": "fixture-1"},
+    "vulnrichment": null
+  }
+}
