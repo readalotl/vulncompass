@@ -35,6 +35,11 @@ def test_validate_relative_path_rejects_destination_override(path: str) -> None:
 def test_only_exact_origins_are_approved() -> None:
     assert all(origin.startswith("https://") for origin in utils.APPROVED_ORIGINS)
     assert "https://evil.example/" not in utils.APPROVED_ORIGINS
+    assert "https://cveawg.mitre.org/api/" in utils.APPROVED_ORIGINS
+    assert (
+        "https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/"
+        in utils.APPROVED_ORIGINS
+    )
 
 
 class _FakeClient:
@@ -92,6 +97,18 @@ async def test_rejected_origin_never_creates_client(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_text_fetch_uses_same_fixed_origin_policy(monkeypatch) -> None:
+    _FakeClient.response = httpx.Response(200, content=b'{"ID":"CVE-2099-1"}\n')
+    monkeypatch.setattr(utils.httpx, "AsyncClient", _FakeClient)
+    origin = "https://raw.githubusercontent.com/projectdiscovery/nuclei-templates/"
+    result = await utils.fetch_public_text(origin, "main/cves.json")
+    assert result == '{"ID":"CVE-2099-1"}\n'
+    assert _FakeClient.init_kwargs["base_url"] == origin
+    assert _FakeClient.init_kwargs["follow_redirects"] is False
+    assert _FakeClient.init_kwargs["trust_env"] is False
+
+
+@pytest.mark.asyncio
 async def test_upstream_error_is_sanitized(monkeypatch, caplog) -> None:
     sensitive = "SSN 123-45-6789 DOB 1940-01-01 token=secret"
     _FakeClient.response = httpx.Response(500, text=sensitive)
@@ -103,4 +120,3 @@ async def test_upstream_error_is_sanitized(monkeypatch, caplog) -> None:
     assert str(captured.value) == "Upstream service returned status 500."
     assert sensitive not in str(captured.value)
     assert sensitive not in caplog.text
-

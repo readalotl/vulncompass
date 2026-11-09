@@ -29,6 +29,8 @@ def register(mcp: FastMCP) -> None:
                 ],
                 "not_supported": [
                     "vulnerability scanning",
+                    "Nuclei template execution",
+                    "Shodan asset lookup",
                     "risk acceptance",
                     "finding closure",
                     "patch deployment",
@@ -36,4 +38,3 @@ def register(mcp: FastMCP) -> None:
             },
             indent=2,
         )
-

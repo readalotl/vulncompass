@@ -150,6 +150,9 @@ def compare_snapshots(
     previous: EvidenceSnapshot, current: EvidenceSnapshot, finding_id: str | None
 ) -> dict[str, Any]:
     fields = {
+        "cve_program.state": ("cve_program", "state"),
+        "cve_program.date_updated": ("cve_program", "date_updated"),
+        "cve_program.affected": ("cve_program", "affected"),
         "kev.listed": ("kev", "listed"),
         "kev.date_added": ("kev", "date_added"),
         "kev.due_date": ("kev", "due_date"),
@@ -159,6 +162,9 @@ def compare_snapshots(
         "nvd.cvss.vector": ("nvd", "cvss", "vector"),
         "nvd.configurations": ("nvd", "configurations"),
         "vulnrichment.ssvc": ("vulnrichment", "ssvc"),
+        "nuclei.template_available": ("nuclei", "template_available"),
+        "nuclei.template_path": ("nuclei", "template_path"),
+        "nuclei.repository_ref": ("nuclei", "repository_ref"),
     }
     changes = []
     for name, path in fields.items():

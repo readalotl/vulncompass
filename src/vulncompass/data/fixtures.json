@@ -1,5 +1,17 @@
 {
   "CVE-2099-0001": {
+    "cve_program": {
+      "state": "PUBLISHED",
+      "assigner_short_name": "Synthetic CNA",
+      "date_published": "2099-01-02T00:00:00Z",
+      "date_updated": "2099-01-03T00:00:00Z",
+      "description": "Synthetic remote code execution fixture for deterministic demonstrations.",
+      "affected": [{"vendor": "Synthetic Vendor", "product": "Synthetic Product", "versions": [{"version": "1.x", "status": "affected"}]}],
+      "problem_types": [{"lang": "en", "description": "CWE-78"}],
+      "metrics": [],
+      "references": [],
+      "provider": {"shortName": "Synthetic CNA"}
+    },
     "nvd": {
       "status": "Analyzed",
       "published": "2099-01-02T00:00:00Z",
@@ -10,9 +22,32 @@
       "references": []
     },
     "kev": {"listed": true, "date_added": "2099-01-05", "due_date": "2099-01-26", "required_action": "Apply mitigations or discontinue use.", "known_ransomware_campaign_use": "Unknown", "catalog_version": "fixture-1"},
-    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "active"}, {"Automatable": "yes"}, {"Technical Impact": "total"}]}}
+    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "active"}, {"Automatable": "yes"}, {"Technical Impact": "total"}]}},
+    "nuclei": {
+      "template_available": true,
+      "template_id": "CVE-2099-0001",
+      "name": "Synthetic Product - Remote Code Execution",
+      "severity": "critical",
+      "protocol": "http",
+      "template_path": "http/cves/2099/CVE-2099-0001.yaml",
+      "repository_ref": "fixture",
+      "evidence_level": "detection_template",
+      "scope_note": "Synthetic metadata only; template presence does not prove weaponization, active exploitation, or local applicability."
+    }
   },
   "CVE-2099-0002": {
+    "cve_program": {
+      "state": "PUBLISHED",
+      "assigner_short_name": "Synthetic CNA",
+      "date_published": "2099-02-01T00:00:00Z",
+      "date_updated": "2099-02-02T00:00:00Z",
+      "description": "Synthetic high-severity non-KEV fixture.",
+      "affected": [{"vendor": "Synthetic Vendor", "product": "Synthetic Product", "versions": [{"version": "2.x", "status": "affected"}]}],
+      "problem_types": [],
+      "metrics": [],
+      "references": [],
+      "provider": {"shortName": "Synthetic CNA"}
+    },
     "nvd": {
       "status": "Analyzed",
       "published": "2099-02-01T00:00:00Z",
@@ -23,9 +58,27 @@
       "references": []
     },
     "kev": {"listed": false, "catalog_version": "fixture-1"},
-    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "none"}, {"Automatable": "no"}, {"Technical Impact": "total"}]}}
+    "vulnrichment": {"ssvc": {"version": "2.0.3", "options": [{"Exploitation": "none"}, {"Automatable": "no"}, {"Technical Impact": "total"}]}},
+    "nuclei": {
+      "template_available": false,
+      "evidence_level": "none",
+      "scope_note": "No template in the fixture does not establish that no exploit exists."
+    }
   },
   "CVE-2099-0003": {
+    "cve_program": {
+      "state": "REJECTED",
+      "assigner_short_name": "Synthetic CNA",
+      "date_published": "2099-03-01T00:00:00Z",
+      "date_updated": "2099-03-04T00:00:00Z",
+      "description": null,
+      "rejected_reason": "Synthetic rejection for deterministic demonstrations.",
+      "affected": [],
+      "problem_types": [],
+      "metrics": [],
+      "references": [],
+      "provider": {"shortName": "Synthetic CNA"}
+    },
     "nvd": {
       "status": "Rejected",
       "published": "2099-03-01T00:00:00Z",
@@ -36,6 +89,17 @@
       "references": []
     },
     "kev": {"listed": false, "catalog_version": "fixture-1"},
-    "vulnrichment": null
+    "vulnrichment": null,
+    "nuclei": {
+      "template_available": true,
+      "template_id": "CVE-2099-0003",
+      "name": "Synthetic stale community template",
+      "severity": "high",
+      "protocol": "http",
+      "template_path": "http/cves/2099/CVE-2099-0003.yaml",
+      "repository_ref": "fixture",
+      "evidence_level": "detection_template",
+      "scope_note": "Synthetic metadata illustrates a source conflict with a rejected CVE."
+    }
   }
 }

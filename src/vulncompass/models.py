@@ -113,9 +113,11 @@ class EvidenceSnapshot(StrictModel):
     cve_id: str
     retrieved_at: datetime = Field(default_factory=utc_now)
     mode: EvidenceMode
+    cve_program: dict[str, Any] | None = None
     nvd: dict[str, Any] | None = None
     kev: dict[str, Any] | None = None
     vulnrichment: dict[str, Any] | None = None
+    nuclei: dict[str, Any] | None = None
     unavailable_sources: list[str] = Field(default_factory=list)
     provenance: list[Provenance] = Field(default_factory=list)
 

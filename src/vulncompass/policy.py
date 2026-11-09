@@ -14,7 +14,7 @@ from vulncompass.models import (
     Recommendation,
 )
 
-POLICY_VERSION = "2026.11.1"
+POLICY_VERSION = "2026.11.2"
 
 
 def _is_kev(evidence: EvidenceSnapshot) -> bool:
@@ -37,8 +37,24 @@ def _missing(finding: FindingInput) -> list[str]:
 def _conflicts(evidence: EvidenceSnapshot) -> list[str]:
     conflicts: list[str] = []
     status = (evidence.nvd or {}).get("status", "")
+    program_state = (evidence.cve_program or {}).get("state", "")
     if _is_kev(evidence) and str(status).upper() in {"REJECTED", "DISPUTED"}:
         conflicts.append(f"CISA KEV lists the CVE while NVD status is {status}.")
+    if str(program_state).upper() == "REJECTED":
+        if str(status).upper() not in {"", "REJECTED"}:
+            conflicts.append(
+                "The CVE Program record is REJECTED while NVD reports "
+                f"status {status}."
+            )
+        if _is_kev(evidence):
+            conflicts.append(
+                "The CVE Program record is REJECTED while CISA KEV lists the CVE."
+            )
+        if (evidence.nuclei or {}).get("template_available") is True:
+            conflicts.append(
+                "The CVE Program record is REJECTED while the community Nuclei "
+                "index contains a template."
+            )
     return conflicts
 
 
@@ -113,7 +129,18 @@ def assess_policy(finding: FindingInput, evidence: EvidenceSnapshot) -> Assessme
         rules.append("R-1")
         rationale.append("No higher-priority deterministic condition applies.")
 
-    unavailable = evidence.unavailable_sources
+    if (evidence.nuclei or {}).get("template_available") is True:
+        rationale.append(
+            "The community Nuclei index contains a detection template; this is "
+            "supporting evidence only and does not prove weaponization, active "
+            "exploitation, or local applicability."
+        )
+
+    unavailable = [
+        source
+        for source in evidence.unavailable_sources
+        if source != "nuclei_templates"
+    ]
     if conflicts or finding.applicability is Applicability.UNKNOWN or unavailable:
         confidence = Confidence.LOW
     elif missing or finding.applicability is Applicability.LIKELY_AFFECTED:

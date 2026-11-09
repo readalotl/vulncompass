@@ -46,3 +46,9 @@ untrusted. Do not include upstream response bodies, headers, full URLs, query
 strings, stack traces, credentials, names, SSNs, dates of birth, addresses, or other
 sensitive values in MCP errors or logs. Use structured logs with explicitly
 allowlisted fields and define retention and access controls before processing PII.
+
+VulnCompass consumes only the ProjectDiscovery Nuclei CVE metadata index. It
+does not execute templates or retrieve payload bodies, and template presence is
+not treated as proof of weaponization or local applicability. Direct Shodan
+lookups are outside the trust boundary because organizational hostnames, IP
+addresses, and network-exposure data must remain local.

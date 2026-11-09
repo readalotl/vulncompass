@@ -16,6 +16,7 @@ Start with `CVE-2099-0001` and call `assess_finding` using the example finding i
 `record_analyst_decision` only after a human selects an action.
 
 Set `mode` to `live` only when current public evidence is required. Live mode
-sends the CVE ID to the fixed NVD, CISA KEV, and CISA Vulnrichment origins and
-caches the public response under `.vulncompass/cache`.
-
+sends only the CVE ID to the fixed CVE Program, NVD, CISA KEV, CISA
+Vulnrichment, and optional Nuclei metadata origins, then caches the public
+response under `.vulncompass/cache`. Nuclei templates are never executed, and
+organizational hostnames, IP addresses, and asset identifiers remain local.

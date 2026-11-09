@@ -15,7 +15,8 @@ manifest, and deployment kits.
 
 - Accepts a generic vendor finding with locally supplied applicability,
   exposure, mission criticality, and compensating-control status.
-- Retrieves NVD, CISA KEV, and CISA Vulnrichment evidence using only the CVE ID.
+- Retrieves CVE Program, NVD, CISA KEV, CISA Vulnrichment, and optional
+  ProjectDiscovery Nuclei template metadata using only the CVE ID.
 - Applies inspectable deterministic policy rules instead of an opaque score.
 - Explains agreement or disagreement with the vendor without claiming that the
   vendor is wrong.
@@ -23,8 +24,9 @@ manifest, and deployment kits.
 - Detects material changes between public-evidence snapshots.
 - Stores the analyst's final action and rationale locally.
 
-VulnCompass does not scan assets, prove product applicability, accept risk,
-close findings, deploy patches, or write back to a commercial platform.
+VulnCompass does not scan assets, execute Nuclei templates, query Shodan with
+organizational addresses, prove product applicability, accept risk, close
+findings, deploy patches, or write back to a commercial platform.
 
 ## Trust boundary
 
@@ -33,11 +35,21 @@ environment. Asset identifiers, vendor finding details, exposure, mission
 criticality, compensating controls, and analyst decisions are written only to
 the local SQLite database under `DATA_DIR`.
 
-Live mode uses three fixed HTTPS origins:
+Live mode uses five fixed HTTPS origins:
 
+- `cveawg.mitre.org` for the CVE Program CVE Services record
 - `services.nvd.nist.gov` for NVD CVE API 2.0
 - `www.cisa.gov` for the Known Exploited Vulnerabilities JSON feed
 - `raw.githubusercontent.com/cisagov/vulnrichment` for CISA ADP records
+- `raw.githubusercontent.com/projectdiscovery/nuclei-templates` for the
+  community CVE template metadata index
+
+Nuclei metadata is supporting evidence only. A template indicates that a
+community detection or proof-of-concept check is available; it does not prove
+weaponization, exploitation in the wild, or local applicability. VulnCompass
+does not download or execute template payloads. Direct Shodan integration is
+intentionally excluded because the project trust boundary requires hostnames,
+IP addresses, and exposure data to remain local.
 
 Redirects and environment proxy inheritance are disabled, responses are size
 bounded, and error messages do not include upstream response bodies. Network
@@ -94,8 +106,10 @@ bind address is loopback-only (`127.0.0.1`).
 
 ## Fixture demonstration
 
-Use `CVE-2099-0001` for a synthetic KEV-listed case, `CVE-2099-0002` for a
-synthetic non-KEV case, and `CVE-2099-0003` for a synthetic rejected CVE. A
+Use `CVE-2099-0001` for a synthetic KEV-listed case with Nuclei metadata,
+`CVE-2099-0002` for a synthetic non-KEV case without a template, and
+`CVE-2099-0003` for a synthetic rejected CVE with conflicting community
+metadata. A
 ten-finding backlog is provided in `examples/demo_findings.csv`, and
 `examples/material_change_request.json` demonstrates a KEV, CVSS, affected
 version, and exploitation-status change.
@@ -132,7 +146,7 @@ Suggested sequence:
 
 ## Policy summary
 
-The MVP policy version is `2026.11.1`.
+The MVP policy version is `2026.11.2`.
 
 - Confirmed or likely affected plus KEV: immediate review.
 - KEV plus unknown applicability: investigate applicability immediately.
@@ -141,6 +155,10 @@ The MVP policy version is `2026.11.1`.
 - Unknown applicability or missing local context: investigate; missing data
   never automatically reduces priority.
 - Otherwise: routine remediation.
+- A Nuclei template is shown as caveated supporting evidence and never changes
+  priority by itself.
+- A rejected CVE Program record that conflicts with NVD, KEV, or Nuclei is
+  surfaced as a source conflict and lowers confidence.
 
 Confidence is high only when key local context is known, public evidence is
 available, and no material conflict exists. It is not a probability.
@@ -162,7 +180,7 @@ fields never enter public requests.
 ```text
 src/vulncompass/
 ├── app.py            FastMCP assembly and transport selection
-├── evidence.py       NVD, KEV, Vulnrichment adapters and cache
+├── evidence.py       CVE Program, NVD, KEV, Vulnrichment, Nuclei adapters
 ├── models.py         Pydantic tool contracts and enums
 ├── policy.py         deterministic recommendation rules
 ├── service.py        workflow orchestration

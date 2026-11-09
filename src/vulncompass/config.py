@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     mcp_port: int = 8000
     data_dir: Path = Path(".vulncompass")
     nvd_api_key: str = Field(default="", repr=False)
+    nuclei_templates_enabled: bool = True
+    nuclei_templates_ref: str = "main"
     request_timeout_seconds: float = Field(default=20.0, ge=1.0, le=60.0)
     cache_ttl_seconds: int = Field(default=86_400, ge=60)
 
