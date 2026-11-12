@@ -22,7 +22,8 @@ manifest, and deployment kits.
   vendor is wrong.
 - Produces a bounded analyst-review queue.
 - Detects material changes between public-evidence snapshots.
-- Stores the analyst's final action and rationale locally.
+- Stores the analyst's final action and rationale in `DATA_DIR` (see
+  [Data residency by deployment](#data-residency-by-deployment)).
 
 VulnCompass does not scan assets, execute Nuclei templates, query Shodan with
 organizational addresses, prove product applicability, accept risk, close
@@ -30,10 +31,12 @@ findings, deploy patches, or write back to a commercial platform.
 
 ## Trust boundary
 
-Only the CVE identifier and public API parameters may leave the local
-environment. Asset identifiers, vendor finding details, exposure, mission
-criticality, compensating controls, and analyst decisions are written only to
-the local SQLite database under `DATA_DIR`.
+Only the CVE identifier and public API parameters leave the server process.
+Asset identifiers, vendor finding details, exposure, mission criticality,
+compensating controls, and analyst decisions are written only to the SQLite
+database at `DATA_DIR` and are never sent to the five public evidence origins.
+Where `DATA_DIR` physically resides depends on how the server is deployed — see
+[Data residency by deployment](#data-residency-by-deployment).
 
 Live mode uses five fixed HTTPS origins:
 
@@ -61,10 +64,10 @@ MVP; do not expose HTTP transport to an untrusted network.
 
 | Tool | Purpose | State change |
 | --- | --- | --- |
-| `assess_finding` | Build one evidence-backed recommendation | Saves assessment and evidence snapshot locally |
-| `prioritize_findings` | Rank up to 200 findings into a bounded review queue | Saves each assessment locally |
+| `assess_finding` | Build one evidence-backed recommendation | Saves assessment and evidence snapshot to `DATA_DIR` |
+| `prioritize_findings` | Rank up to 200 findings into a bounded review queue | Saves each assessment to `DATA_DIR` |
 | `detect_material_changes` | Compare stored or supplied evidence snapshots | None |
-| `record_analyst_decision` | Record approve, modify, reject, defer, or investigate | Appends a local decision record |
+| `record_analyst_decision` | Record approve, modify, reject, defer, or investigate | Appends a decision record to `DATA_DIR` |
 
 The server also exposes the `review_vulnerability_backlog` prompt and the
 `vulncompass://info/server` resource.
@@ -184,11 +187,40 @@ src/vulncompass/
 ├── models.py         Pydantic tool contracts and enums
 ├── policy.py         deterministic recommendation rules
 ├── service.py        workflow orchestration
-├── storage.py        local SQLite repository
+├── storage.py        SQLite repository (path set by DATA_DIR)
 ├── tools/            one module per MCP tool
 ├── prompts/          analyst workflow prompt
 └── resources/        server trust-boundary resource
 ```
+
+## Data residency by deployment
+
+`DATA_DIR` (default `.vulncompass/`) is a path **relative to the server
+process's working directory** unless overridden. Where that directory physically
+resides — and who controls it — differs by deployment:
+
+| Deployment | Where `DATA_DIR` lives | Who controls the storage |
+|---|---|---|
+| **Analyst workstation** (stdio via MCP client) | Analyst's own filesystem | Analyst |
+| **watsonx Orchestrate local MCP toolkit** | Orchestrate runtime filesystem (inside the managed Orchestrate environment, not the analyst's workstation) | IBM-managed Orchestrate runtime |
+| **cloud.gov / Code Engine HTTP** | Container ephemeral filesystem — lost on restart unless a persistent volume is mounted | Platform operator |
+| **Databricks App** | Databricks cluster ephemeral storage — lost on restart unless an external store is configured | Platform operator |
+
+**Implications for operational deployments:**
+
+- In the **local MCP toolkit** case, organizational data (asset IDs, vendor
+  findings, analyst decisions) resides inside the Orchestrate runtime, not on
+  the analyst's machine. The `server.py` entrypoint anchors `DATA_DIR` to a
+  stable path within the staged package directory to survive process-per-call
+  restarts, but the data is still held by the Orchestrate platform. Review your
+  agency's data-handling requirements before passing real asset identifiers or
+  findings through this deployment path.
+- In **HTTP deployments** (cloud.gov, Code Engine, Databricks), the container
+  filesystem is ephemeral. Assessments and decisions are lost on restart unless
+  `DATA_DIR` is pointed at a mounted persistent volume or external database.
+- For any deployment outside a single analyst's workstation, the `DATA_DIR`
+  path should be set explicitly via the `DATA_DIR` environment variable rather
+  than relying on the process working directory.
 
 ## Deployment
 

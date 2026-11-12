@@ -84,8 +84,37 @@ find "${STAGE_DIR}" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/
 STAGE_SIZE="$(du -sh "${STAGE_DIR}" | cut -f1)"
 echo "  staged package_root size: ${STAGE_SIZE}"
 
+# --- Pre-flight: verify toolkit name matches agent YAML tool prefix -----------
+# A mismatch here causes Orchestrate to silently fail to route tool calls.
+# The toolkit.yaml template name is the canonical source of truth; TOOLKIT_NAME
+# (from .env / environment) must agree with it unless you are intentionally
+# registering under a different name.
+TEMPLATE_NAME="$(grep -E '^name:' "${SCRIPT_DIR}/toolkit.yaml" | head -1 | sed 's/name:[[:space:]]*//')"
+AGENT_YAML="${SCRIPT_DIR}/vulncompass_agent.yaml"
+if [[ -f "${AGENT_YAML}" ]]; then
+  # Extract the unique set of prefixes used in the agent tools list.
+  AGENT_PREFIXES="$(grep -E '^\s+-\s+\S+:' "${AGENT_YAML}" | sed 's/.*- //' | cut -d: -f1 | sort -u | tr '\n' ' ' | xargs)"
+  for PREFIX in ${AGENT_PREFIXES}; do
+    if [[ "${PREFIX}" != "${TOOLKIT_NAME}" ]]; then
+      echo "FATAL: naming mismatch detected." >&2
+      echo "  Agent YAML tool prefix : '${PREFIX}'" >&2
+      echo "  TOOLKIT_NAME (this run): '${TOOLKIT_NAME}'" >&2
+      echo "  toolkit.yaml template  : '${TEMPLATE_NAME}'" >&2
+      echo "" >&2
+      echo "Fix: set TOOLKIT_NAME='${PREFIX}' in your .env, or update the" >&2
+      echo "agent YAML tool references to use '${TOOLKIT_NAME}:'." >&2
+      exit 1
+    fi
+  done
+  echo "  Naming check: toolkit '${TOOLKIT_NAME}' matches agent tool prefix — OK"
+fi
+
 # --- Generate the toolkit spec pointing at the staging dir --------------------
-sed -E "s#^package_root:.*#package_root: ${STAGE_DIR}#" \
+# Rewrite both `package_root` and `name` so the imported toolkit name matches
+# $TOOLKIT_NAME (and therefore the `vulncompass:` prefix in agent YAML files).
+sed -E \
+  -e "s#^package_root:.*#package_root: ${STAGE_DIR}#" \
+  -e "s#^name:.*#name: ${TOOLKIT_NAME}#" \
   "${SCRIPT_DIR}/toolkit.yaml" > "${TOOLKIT_YAML}"
 
 # --- Import (or re-import) the local MCP toolkit ------------------------------

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VulnCompass evaluation dataset — 10 gold question/answer pairs.
+
+  Each <row> maps to one CSV row in datasets/vulncompass/vulncompass.csv.
+  Rules for authoring questions:
+    - The question must be answerable ONLY by calling a VulnCompass tool.
+    - expected_facts lists the minimum facts a correct answer must contain.
+    - Pipe-separate multiple expected_facts with " | " in the CSV.
+
+  Policy version covered: 2026.11.2
+  Fixture CVEs: CVE-2099-0001 (KEV, CVSS 9.8), CVE-2099-0002 (non-KEV, CVSS 8.1),
+                CVE-2099-0003 (rejected CVE Program record)
+-->
+<dataset name="vulncompass" version="1">
+
+  <!-- ── Tool 1: assess_finding ─────────────────────────────────────────── -->
+
+  <row id="Q-01">
+    <question>
+      Assess finding F-001 for CVE-2099-0001. The asset ASSET-001 was reported
+      by synthetic-vendor (finding V-1001). It is confirmed affected, publicly
+      exposed, mission-critical, and has no compensating controls. Vendor scored
+      it High with a risk score of 742.
+    </question>
+    <expected_facts>
+      <fact>immediate_review</fact>
+      <fact>CISA KEV</fact>
+      <fact>high confidence</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-02">
+    <question>
+      Assess finding F-004 for CVE-2099-0002 on ASSET-004 (synthetic-vendor,
+      finding V-1004). The asset is confirmed NOT affected, isolated network,
+      low mission criticality, and compensating controls are present. The vendor
+      scored it Critical with risk score 910.
+    </question>
+    <expected_facts>
+      <fact>proposed_closure</fact>
+      <fact>confirmed not affected</fact>
+      <fact>high confidence</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-03">
+    <question>
+      Assess finding F-007 for CVE-2099-0002 on ASSET-007 (synthetic-vendor,
+      finding V-1007). Applicability is unknown, internet exposure is public,
+      mission criticality is high. Vendor scored it High.
+    </question>
+    <expected_facts>
+      <fact>investigate_applicability</fact>
+      <fact>applicability is unknown</fact>
+      <fact>low confidence</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-04">
+    <question>
+      Assess finding F-008 for CVE-2099-0003 on ASSET-008 (synthetic-vendor,
+      finding V-1008). All local context fields are unknown. Vendor scored it High.
+      What source conflict does VulnCompass report?
+    </question>
+    <expected_facts>
+      <fact>investigate_applicability</fact>
+      <fact>CVE Program record is REJECTED</fact>
+      <fact>Nuclei</fact>
+    </expected_facts>
+  </row>
+
+  <!-- ── Tool 2: prioritize_findings ───────────────────────────────────── -->
+
+  <row id="Q-05">
+    <question>
+      Prioritize this CSV backlog and tell me the rank-1 finding and why it was
+      placed first:
+
+      finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
+      F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+      F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
+      F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
+      F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+    </question>
+    <expected_facts>
+      <fact>F-002</fact>
+      <fact>immediate_review</fact>
+      <fact>CISA KEV</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-06">
+    <question>
+      In the same 4-finding backlog as Q-05, the vendor scored F-004 as Critical
+      (highest risk score 910). Where does VulnCompass rank F-004 and what
+      recommendation does it give?
+    </question>
+    <expected_facts>
+      <fact>proposed_closure</fact>
+      <fact>confirmed not affected</fact>
+    </expected_facts>
+  </row>
+
+  <!-- ── Tool 3: detect_material_changes ───────────────────────────────── -->
+
+  <row id="Q-07">
+    <question>
+      Detect material changes for CVE-2099-0002 between these two snapshots.
+
+      Previous snapshot (2026-11-01): KEV listed=false, CVSS vector
+      CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H, configurations affected
+      versions 2.x, no vulnrichment data.
+
+      Current snapshot (2026-11-06): KEV listed=true (added 2026-11-05, due
+      2026-11-26, required action "Apply mitigations or discontinue use."),
+      CVSS vector CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H, configurations
+      affected versions 2.x and 3.x, vulnrichment SSVC Exploitation=active.
+
+      Does this require analyst re-review?
+    </question>
+    <expected_facts>
+      <fact>material_change_detected</fact>
+      <fact>requires_analyst_rereview</fact>
+      <fact>KEV</fact>
+      <fact>CVSS vector</fact>
+    </expected_facts>
+  </row>
+
+  <!-- ── Tool 4: record_analyst_decision ───────────────────────────────── -->
+
+  <row id="Q-08">
+    <question>
+      First assess finding F-005 for CVE-2099-0002 on ASSET-005 (synthetic-vendor,
+      V-1005, confirmed affected, public exposure, high mission criticality, no
+      compensating controls, vendor severity High). Then record an analyst decision
+      to approve that recommendation. The analyst is "analyst-demo" and their
+      rationale is: asset is confirmed affected, publicly exposed, and
+      mission-critical with no controls — accelerated remediation warranted.
+    </question>
+    <expected_facts>
+      <fact>DECIDED</fact>
+      <fact>approve</fact>
+      <fact>accelerated_remediation</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-09">
+    <question>
+      First assess finding F-006 for CVE-2099-0002 on ASSET-006 (synthetic-vendor,
+      V-1006, confirmed affected, internal exposure, moderate mission criticality,
+      compensating controls present, vendor severity Medium). Then record a modify
+      decision: the analyst wants to change the recommendation to
+      routine_remediation because compensating controls are already deployed.
+      Analyst ID is "analyst-demo".
+    </question>
+    <expected_facts>
+      <fact>DECIDED</fact>
+      <fact>modify</fact>
+      <fact>routine_remediation</fact>
+    </expected_facts>
+  </row>
+
+  <!-- ── Edge case ─────────────────────────────────────────────────────── -->
+
+  <row id="Q-10">
+    <question>
+      Try to record an analyst decision to approve finding F-NONEXISTENT without
+      first assessing it. What happens?
+    </question>
+    <expected_facts>
+      <fact>error</fact>
+      <fact>assess</fact>
+    </expected_facts>
+  </row>
+
+</dataset>

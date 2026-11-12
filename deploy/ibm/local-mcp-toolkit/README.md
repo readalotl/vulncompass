@@ -27,12 +27,13 @@ next import.
 
 ```
 deploy/ibm/local-mcp-toolkit/
-├── server.py           # stdio entrypoint: `from vulncompass.app import mcp; mcp.run(transport="stdio")`
-├── requirements.txt    # pinned runtime deps staged next to the package
-├── toolkit.yaml        # import config template (kind: mcp, command: python server.py, tools: *)
-├── register-toolkit.sh # stage flattened package_root + activate ADK env + import (idempotent)
-├── .env.example        # instance URL + env/toolkit names (no secrets)
-└── README.md           # this runbook
+├── server.py              # stdio entrypoint: `from vulncompass.app import mcp; mcp.run(transport="stdio")`
+├── requirements.txt       # pinned runtime deps staged next to the package
+├── toolkit.yaml           # import config template (kind: mcp, command: python server.py, tools: *)
+├── register-toolkit.sh    # stage flattened package_root + activate ADK env + import (idempotent)
+├── vulncompass_agent.yaml # native agent definition — imports the toolkit tools, no UI required
+├── .env.example           # instance URL + env/toolkit names (no secrets)
+└── README.md              # this runbook
 ```
 
 > **How the register script assembles the upload:** Orchestrate uploads
@@ -123,10 +124,53 @@ python deploy/ibm/local-mcp-toolkit/server.py
 
 ---
 
-## Part 3 — Build an agent that uses it
+## Part 3 — Deploy the agent
 
-In the Orchestrate UI, create/edit an agent, add your toolkit's tools, give it a
-clear instruction, and chat-test a question.
+`vulncompass_agent.yaml` is a **native agent definition** that wires the four
+toolkit tools to a Granite 3 8B instruction-following LLM with a pre-written
+system prompt. Import it with the ADK — no UI required.
+
+### 3.1 Import the agent
+
+```bash
+orchestrate agents import -f deploy/ibm/local-mcp-toolkit/vulncompass_agent.yaml
+```
+
+Verify it registered:
+
+```bash
+orchestrate agents list
+```
+
+### 3.2 Chat-test in the CLI
+
+```bash
+orchestrate chat --agent vulncompass_agent
+```
+
+Ask it a question that requires a tool call, for example:
+
+```
+Assess finding F-001 for CVE-2099-0001. Asset ASSET-001 reported by
+synthetic-vendor (finding V-1001). Confirmed affected, publicly exposed,
+mission-critical, no compensating controls. Vendor scored it High.
+```
+
+The agent should call `assess_finding`, not answer from memory.
+
+### 3.3 (Optional) Edit the agent before importing
+
+The YAML lives at [`vulncompass_agent.yaml`](vulncompass_agent.yaml). Editable
+fields:
+
+| Field | Default | Why you'd change it |
+|---|---|---|
+| `llm` | `watsonx/ibm/granite-3-8b-instruct` | Swap to another watsonx model |
+| `instructions` | VulnCompass system prompt | Tune tool-call behaviour |
+| `name` | `vulncompass_agent` | Rename the agent |
+
+Re-import after edits (`orchestrate agents import` is idempotent — it replaces
+an existing agent with the same name).
 
 ---
 
@@ -149,7 +193,8 @@ done
 ## Teardown
 
 ```bash
-orchestrate toolkits remove --name example_mcp_local
+orchestrate agents remove --name vulncompass_agent
+orchestrate toolkits remove --name vulncompass
 ```
 
 ---

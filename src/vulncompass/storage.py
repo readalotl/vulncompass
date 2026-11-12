@@ -111,9 +111,7 @@ class Repository:
                 (finding_id,),
             ).fetchone()
         return (
-            EvidenceSnapshot.model_validate_json(row["snapshot_json"])
-            if row
-            else None
+            EvidenceSnapshot.model_validate_json(row["snapshot_json"]) if row else None
         )
 
     def save_decision(self, record: dict[str, Any]) -> None:

@@ -13,4 +13,3 @@ def register_tools(mcp) -> None:
     prioritize_findings.register(mcp)
     detect_material_changes.register(mcp)
     record_analyst_decision.register(mcp)
-

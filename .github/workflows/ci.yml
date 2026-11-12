@@ -1,5 +1,10 @@
 name: CI
 
+# Minimal required permissions — no job may write to the repo, packages, or
+# deployments without explicitly requesting it.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -7,21 +12,25 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  # ── Lint ──────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & format check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v5
         with:
-          version: "latest"
+          version: "0.7.3"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Install Python
         run: uv python install 3.11
 
-      - name: Install dependencies
-        run: uv sync --group dev
+      - name: Install dependencies (frozen)
+        run: uv sync --frozen --group dev
 
       - name: Lint
         run: uv run ruff check .
@@ -29,5 +38,52 @@ jobs:
       - name: Format check
         run: uv run ruff format --check .
 
+  # ── Test ──────────────────────────────────────────────────────────────────
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    # Tests must not start before lint passes — a broken import crashes pytest
+    # in a confusing way that wastes CI minutes.
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.3"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Install dependencies (frozen)
+        run: uv sync --frozen --group dev
+
       - name: Run tests
         run: uv run pytest tests/ -v
+
+  # ── Deploy (manual only) ──────────────────────────────────────────────────
+  # Deployment to IBM watsonx Orchestrate is intentionally manual until durable
+  # storage (non-SQLite) and MCP transport authentication are settled.
+  # When ready, uncomment this job and set the required secrets in repo settings:
+  #   WXO_API_KEY, WXO_INSTANCE_URL, WXO_ENV_NAME
+  #
+  # deploy:
+  #   name: Deploy to Orchestrate
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   environment: production
+  #   permissions:
+  #     contents: read
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Register toolkit
+  #       env:
+  #         WXO_API_KEY: ${{ secrets.WXO_API_KEY }}
+  #         WXO_INSTANCE_URL: ${{ secrets.WXO_INSTANCE_URL }}
+  #         WXO_ENV_NAME: ${{ secrets.WXO_ENV_NAME }}
+  #         TOOLKIT_NAME: vulncompass
+  #       run: bash deploy/ibm/local-mcp-toolkit/register-toolkit.sh

@@ -16,4 +16,3 @@ def register(mcp: FastMCP) -> None:
             "whether to approve, modify, reject, defer, or request investigation, "
             "and call record_analyst_decision only after the analyst chooses."
         )
-

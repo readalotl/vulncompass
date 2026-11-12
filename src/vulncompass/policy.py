@@ -43,8 +43,7 @@ def _conflicts(evidence: EvidenceSnapshot) -> list[str]:
     if str(program_state).upper() == "REJECTED":
         if str(status).upper() not in {"", "REJECTED"}:
             conflicts.append(
-                "The CVE Program record is REJECTED while NVD reports "
-                f"status {status}."
+                f"The CVE Program record is REJECTED while NVD reports status {status}."
             )
         if _is_kev(evidence):
             conflicts.append(
@@ -107,9 +106,7 @@ def assess_policy(finding: FindingInput, evidence: EvidenceSnapshot) -> Assessme
     elif kev:
         recommendation = Recommendation.INVESTIGATE_APPLICABILITY
         rules.append("K-2")
-        rationale.append(
-            "CISA KEV lists the CVE, but local applicability is unknown."
-        )
+        rationale.append("CISA KEV lists the CVE, but local applicability is unknown.")
     elif (
         finding.applicability is Applicability.CONFIRMED_AFFECTED
         and finding.internet_exposure is Exposure.PUBLIC

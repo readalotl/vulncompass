@@ -1,0 +1,11 @@
+datasets:
+  vulncompass:
+    csv: eval/phoenix/datasets/vulncompass/vulncompass.csv
+    description: >
+      10 gold Q&A pairs covering all four VulnCompass tools and all major
+      policy paths (KEV immediate review, proposed closure, investigate
+      applicability, accelerated remediation, material change detection,
+      analyst decisions, and error handling).
+    input_column: question
+    expected_facts_column: expected_facts
+    id_column: id

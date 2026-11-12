@@ -18,5 +18,8 @@ Start with `CVE-2099-0001` and call `assess_finding` using the example finding i
 Set `mode` to `live` only when current public evidence is required. Live mode
 sends only the CVE ID to the fixed CVE Program, NVD, CISA KEV, CISA
 Vulnrichment, and optional Nuclei metadata origins, then caches the public
-response under `.vulncompass/cache`. Nuclei templates are never executed, and
-organizational hostnames, IP addresses, and asset identifiers remain local.
+response under `DATA_DIR/cache`. Nuclei templates are never executed.
+Organizational hostnames, IP addresses, and asset identifiers are never sent to
+those origins — they are stored only in `DATA_DIR`. See
+[Data residency by deployment](README.md#data-residency-by-deployment) for
+where `DATA_DIR` lives in each deployment.

@@ -393,9 +393,7 @@ async def _load_live(cve_id: str) -> EvidenceSnapshot:
             provenance.append(
                 Provenance(
                     source="ProjectDiscovery Nuclei Templates index",
-                    record_url=(
-                        f"{NUCLEI_TEMPLATES_BASE}{_nuclei_index_path()}"
-                    ),
+                    record_url=(f"{NUCLEI_TEMPLATES_BASE}{_nuclei_index_path()}"),
                     retrieved_at=retrieved_at,
                 )
             )

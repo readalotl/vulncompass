@@ -97,10 +97,7 @@ async def test_priority_queue_accepts_csv_and_reports_bad_rows(tmp_path) -> None
         "F-CSV-1,synthetic,V-1,CVE-2099-0002,ASSET-1,Moderate,"
         "confirmed_affected,internal,moderate,present"
     )
-    bad = (
-        "F-CSV-2,synthetic,V-2,not-a-cve,ASSET-2,High,"
-        "unknown,unknown,unknown,unknown"
-    )
+    bad = "F-CSV-2,synthetic,V-2,not-a-cve,ASSET-2,High,unknown,unknown,unknown,unknown"
     csv_text = "\n".join((header, good, bad))
     result = await prioritize_findings_service(
         PrioritizeRequest(csv_text=csv_text), repo=repo
@@ -241,16 +238,10 @@ def test_cve_program_normalization_preserves_cna_assertions() -> None:
             },
             "containers": {
                 "cna": {
-                    "descriptions": [
-                        {"lang": "en", "value": "CNA description"}
-                    ],
+                    "descriptions": [{"lang": "en", "value": "CNA description"}],
                     "affected": [{"product": "Example", "vendor": "Vendor"}],
                     "problemTypes": [
-                        {
-                            "descriptions": [
-                                {"lang": "en", "description": "CWE-79"}
-                            ]
-                        }
+                        {"descriptions": [{"lang": "en", "description": "CWE-79"}]}
                     ],
                     "references": [{"url": "https://example.invalid/advisory"}],
                 }
@@ -287,12 +278,9 @@ def test_nuclei_metadata_never_claims_weaponization() -> None:
 @pytest.mark.asyncio
 async def test_rejected_cve_program_conflict_lowers_confidence(tmp_path) -> None:
     repo = Repository(tmp_path / "test.db")
-    result = await assess_finding_service(
-        finding(cve_id="CVE-2099-0003"), repo=repo
-    )
+    result = await assess_finding_service(finding(cve_id="CVE-2099-0003"), repo=repo)
     assert result.confidence.value == "low"
     assert any(
-        "CVE Program record is REJECTED" in item
-        for item in result.source_conflicts
+        "CVE Program record is REJECTED" in item for item in result.source_conflicts
     )
     assert any("does not prove weaponization" in item for item in result.rationale)

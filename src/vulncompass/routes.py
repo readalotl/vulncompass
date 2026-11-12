@@ -15,4 +15,3 @@ def register_routes(mcp: FastMCP) -> None:
     @mcp.custom_route("/version", methods=["GET"])
     async def version(request: Request) -> JSONResponse:
         return JSONResponse({"version": __version__})
-

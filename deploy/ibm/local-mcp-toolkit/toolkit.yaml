@@ -17,8 +17,8 @@
 # If your server needs secrets, add a connection (see README) and list it here.
 spec_version: v1
 kind: mcp
-name: example_mcp_local
-description: "VulnCompass MCP server (local stdio). Replace name/description with your own server."
+name: vulncompass
+description: "VulnCompass MCP server (local stdio transport for watsonx Orchestrate)."
 command: python server.py
 env: []
 tools:

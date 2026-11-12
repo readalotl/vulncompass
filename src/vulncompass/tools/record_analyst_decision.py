@@ -33,4 +33,3 @@ def register(mcp: FastMCP) -> None:
         deploys remediation.
         """
         return record_analyst_decision_service(decision)
-

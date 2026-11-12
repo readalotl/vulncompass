@@ -29,4 +29,3 @@ def register(mcp: FastMCP) -> None:
     ) -> dict[str, Any]:
         """Compare public evidence and identify findings requiring rereview."""
         return await detect_material_changes_service(request)
-
