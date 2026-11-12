@@ -19,6 +19,19 @@ class Settings(BaseSettings):
     mcp_host: str = "127.0.0.1"
     mcp_port: int = 8000
     data_dir: Path = Path(".vulncompass")
+
+    # Optional Postgres connection URL.
+    # When set, VulnCompass uses Postgres instead of the local SQLite file.
+    # Example: postgresql://analyst:secret@localhost:5432/vulncompass
+    # Leave unset (default) to keep using SQLite — safe for single-analyst use.
+    database_url: str = Field(default="", repr=False)
+
+    # MCP HTTP transport API key.
+    # Required when mcp_transport="streamable-http".
+    # Clients must send:  Authorization: Bearer <mcp_api_key>
+    # Leave unset to disable auth (only appropriate for stdio/local use).
+    mcp_api_key: str = Field(default="", repr=False)
+
     nvd_api_key: str = Field(default="", repr=False)
     nuclei_templates_enabled: bool = True
     nuclei_templates_ref: str = "main"
