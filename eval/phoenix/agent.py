@@ -28,8 +28,11 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROMPT_PATH = Path(__file__).parent / "prompts" / "v1.txt"
 
 # ── MCP server command ────────────────────────────────────────────────────────
-# Absolute uv path so the subprocess resolves regardless of the shell PATH.
-_UV = os.environ.get("UV_BIN", "/home/itzuser/.local/bin/uv")
+# Resolve uv from PATH at import time so the subprocess works on any machine
+# (local dev, CI runners, containers) without hardcoding an absolute path.
+# Override with UV_BIN env var if the binary lives somewhere outside PATH.
+import shutil as _shutil
+_UV = os.environ.get("UV_BIN") or _shutil.which("uv") or "uv"
 _SERVER_ARGS = ["run", "python", "-m", "vulncompass.app"]
 
 
