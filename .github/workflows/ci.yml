@@ -64,11 +64,16 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/ -v
 
-  # ── Eval – scope judge (no LLM, no API key required) ─────────────────────
+  # ── Eval – scope + correctness (requires OPENAI_API_KEY) ─────────────────
+  # The scope judge verifies the agent called a VulnCompass tool (no LLM
+  # needed for scoring), but the agent itself needs an LLM to reason and call
+  # tools — Ollama is not available on GitHub Actions runners, so we use
+  # gpt-4o-mini for the agent in CI. The correctness judge also uses it.
   eval-scope:
     name: Eval – scope judge
     runs-on: ubuntu-latest
     needs: test
+    if: ${{ vars.ENABLE_CORRECTNESS_EVAL == 'true' }}
     services:
       phoenix:
         image: arizephoenix/phoenix:latest
@@ -101,10 +106,12 @@ jobs:
       - name: Run scope-only eval (fail below 100%)
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --model openai:gpt-4o-mini \
             --skip-correctness-judge \
             --fail-below-scope 1.0
         env:
           PHOENIX_HOST: http://localhost:6006
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   # ── Eval – correctness judge (requires OPENAI_API_KEY, skipped on forks) ──
   eval-correctness:
