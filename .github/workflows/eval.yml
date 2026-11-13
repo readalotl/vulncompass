@@ -1,60 +1,71 @@
-name: Eval
+name: Eval (correctness)
+
+# LLM-as-judge correctness is non-deterministic: a single run can flip
+# between 87% and 100% on identical code due to model temperature variance.
+# Running it as a hard gate on every push produces false failures.
+#
+# Instead this workflow runs:
+#   - nightly at 02:00 UTC (catches regressions without blocking PRs)
+#   - on demand via workflow_dispatch (run before a release or after prompt changes)
+#
+# It is intentionally NOT triggered on push or pull_request.
+# Scope correctness (deterministic tool-call check) remains a hard gate in ci.yml.
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      fail_below:
+        description: "Fail if correctness is below this rate (0.0–1.0)"
+        default: "0.9"
+        required: false
 
 jobs:
-  eval:
+  correctness:
+    name: Correctness judge
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      EVAL_MODEL: openai:gpt-4o-mini
-      JUDGE_MODEL: openai:gpt-4o-mini
-      PHOENIX_HOST: http://localhost:6006
+      FAIL_BELOW: ${{ inputs.fail_below || '0.9' }}
+
+    services:
+      phoenix:
+        image: arizephoenix/phoenix:latest
+        ports:
+          - 6006:6006
+        env:
+          PHOENIX_ENABLE_AUTH: false
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: astral-sh/setup-uv@v5
         with:
+          version: "0.7.3"
           enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python
+        run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --group eval
+        run: uv sync --frozen --group eval
 
-      - name: Start Phoenix
+      - name: Wait for Phoenix
         run: |
-          # Run Phoenix directly so $! captures the actual server PID,
-          # not uv's process wrapper.
-          # PHOENIX_HOST=127.0.0.1 prevents the serve command from binding
-          # to [::] (IPv6 wildcard), which triggers a urljoin crash in
-          # Phoenix 21.x when constructing the display URL.
-          PHOENIX_HOST=127.0.0.1 .venv/bin/python -m phoenix.server.main serve &
-          echo $! > /tmp/phoenix.pid
-          # Wait until the HTTP endpoint is ready (up to 60 s).
-          for i in $(seq 1 60); do
-            curl -sf http://localhost:6006/healthz > /dev/null 2>&1 && break
-            sleep 1
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:6006/healthz && break
+            echo "Waiting for Phoenix… ($i/30)"
+            sleep 2
           done
-          # Fail fast if Phoenix never came up.
-          curl -sf http://localhost:6006/healthz > /dev/null \
-            || { echo "ERROR: Phoenix did not start"; exit 1; }
 
-      - name: Run unit tests
-        run: uv run pytest --tb=short -q
-
-      - name: Run eval
+      - name: Run correctness eval
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
-            --model "$EVAL_MODEL" \
-            --judge-model "$JUDGE_MODEL" \
-            --phoenix-host "$PHOENIX_HOST" \
+            --model openai:gpt-4o-mini \
+            --judge-model openai:gpt-4o-mini \
             --fail-below-scope 1.0 \
-            --fail-below-correctness 0.90
-
-      - name: Stop Phoenix
-        if: always()
-        run: kill $(cat /tmp/phoenix.pid) 2>/dev/null || true
+            --fail-below-correctness "$FAIL_BELOW"
+        env:
+          PHOENIX_HOST: http://localhost:6006
