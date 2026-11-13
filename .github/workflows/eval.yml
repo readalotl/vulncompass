@@ -29,7 +29,10 @@ jobs:
         run: |
           # Run Phoenix directly so $! captures the actual server PID,
           # not uv's process wrapper.
-          .venv/bin/python -m phoenix.server.main serve &
+          # PHOENIX_HOST=127.0.0.1 prevents the serve command from binding
+          # to [::] (IPv6 wildcard), which triggers a urljoin crash in
+          # Phoenix 21.x when constructing the display URL.
+          PHOENIX_HOST=127.0.0.1 .venv/bin/python -m phoenix.server.main serve &
           echo $! > /tmp/phoenix.pid
           # Wait until the HTTP endpoint is ready (up to 60 s).
           for i in $(seq 1 60); do
