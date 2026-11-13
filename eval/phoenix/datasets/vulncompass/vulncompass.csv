@@ -20,7 +20,7 @@ finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendo
 F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
 F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
-F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | immediate_review
+F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | immediate_review | rank
 Q-06,"Prioritize this backlog and tell me where F-004 ranks and what recommendation VulnCompass gives it:
 
 finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
@@ -55,7 +55,7 @@ decision: the analyst wants to change the recommendation to
 routine_remediation because compensating controls are already deployed.
 Analyst ID is ""analyst-demo"".",DECIDED | modify | routine_remediation
 Q-10,"Try to record an analyst decision to approve finding F-NONEXISTENT without
-first assessing it. What happens?",error | assess
+first assessing it. What happens?",Assess the finding before recording an analyst decision
 Q-11,"Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor,
 finding V-1009). The asset is confirmed NOT affected, isolated network, low
 mission criticality, compensating controls present. The vendor scored it
