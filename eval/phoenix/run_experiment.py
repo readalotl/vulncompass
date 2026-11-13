@@ -213,8 +213,9 @@ def main(argv: list[str] | None = None) -> None:
             print(f"ERROR: {exc}")
 
     # Allow the OTLP exporter a moment to flush spans to Phoenix before querying.
+    # CI runners are slower than local machines; 15 s is enough for all 10 traces.
     print("\nWaiting for traces to flush to Phoenix…", flush=True)
-    time.sleep(5)
+    time.sleep(15)
 
     # ── Scope judge (trace-based, no LLM needed) ─────────────────────────────
     # fetch_spans_for_trace() is called per trace_id to pull real Phoenix spans.

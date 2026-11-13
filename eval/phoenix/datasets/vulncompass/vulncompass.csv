@@ -21,9 +21,15 @@ F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T1
 F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
 F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | immediate_review | CISA KEV
-Q-06,"In the same 4-finding backlog as Q-05, the vendor scored F-004 as Critical
-(highest risk score 910). Where does VulnCompass rank F-004 and what
-recommendation does it give?",proposed_closure | confirmed not affected
+Q-06,"Prioritize this backlog and tell me where F-004 ranks and what recommendation VulnCompass gives it:
+
+finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
+F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
+F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
+F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
+
+The vendor scored F-004 as Critical with the highest risk score (910). What does VulnCompass recommend for it?",proposed_closure | confirmed not affected
 Q-07,"Detect material changes for CVE-2099-0002 between these two snapshots.
 
 Previous snapshot (2026-11-01): KEV listed=false, CVSS vector
