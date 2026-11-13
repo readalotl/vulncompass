@@ -37,7 +37,11 @@ _SERVER_ARGS = ["run", "python", "-m", "vulncompass.app"]
 
 
 def _transport() -> StdioTransport:
-    return StdioTransport(command=_UV, args=_SERVER_ARGS, cwd=str(_REPO_ROOT))
+    # Suppress the fastmcp startup banner — it writes to stdout, which is the
+    # MCP stdio pipe, and corrupts the JSON-RPC handshake on non-TTY systems
+    # (CI runners, containers, any environment where stdout is a pipe).
+    env = {**os.environ, "FASTMCP_SHOW_SERVER_BANNER": "false"}
+    return StdioTransport(command=_UV, args=_SERVER_ARGS, cwd=str(_REPO_ROOT), env=env)
 
 
 def _load_system_prompt() -> str:
