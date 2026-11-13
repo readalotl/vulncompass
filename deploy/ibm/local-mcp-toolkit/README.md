@@ -145,7 +145,22 @@ orchestrate agents list
 ### 3.2 Chat-test in the CLI
 
 ```bash
-orchestrate chat --agent vulncompass_agent
+orchestrate chat ask --agent-name vulncompass_agent
+```
+
+To send a single question without entering interactive mode:
+
+```bash
+orchestrate chat ask --agent-name vulncompass_agent \
+  "Assess finding F-001 for CVE-2099-0001. Asset ASSET-001 reported by \
+synthetic-vendor (finding V-1001). Confirmed affected, publicly exposed, \
+mission-critical, no compensating controls. Vendor scored it High."
+```
+
+Add `--include-reasoning` to see the tool-call trace:
+
+```bash
+orchestrate chat ask --agent-name vulncompass_agent --include-reasoning
 ```
 
 Ask it a question that requires a tool call, for example:
