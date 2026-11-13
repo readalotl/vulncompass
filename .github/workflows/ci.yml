@@ -104,6 +104,12 @@ jobs:
             sleep 2
           done
 
+      - name: Diagnose secrets
+        run: |
+          echo "OPENAI_API_KEY length: ${#OPENAI_API_KEY}"
+          echo "All env keys containing 'OPENAI': $(env | grep -i openai | sed 's/=.*/=<masked>/' || echo 'none')"
+          echo "Secrets context test: ${{ secrets.OPENAI_API_KEY != '' }}"
+
       - name: Check OPENAI_API_KEY is set
         run: |
           if [ -z "$OPENAI_API_KEY" ]; then
