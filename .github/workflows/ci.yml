@@ -81,7 +81,7 @@ jobs:
         ports:
           - 6006:6006
         env:
-          PHOENIX_DISABLE_AUTHENTICATION: true
+          PHOENIX_ENABLE_AUTH: false
     steps:
       - uses: actions/checkout@v4
 
@@ -126,7 +126,7 @@ jobs:
         ports:
           - 6006:6006
         env:
-          PHOENIX_DISABLE_AUTHENTICATION: true
+          PHOENIX_ENABLE_AUTH: false
     steps:
       - uses: actions/checkout@v4
 
