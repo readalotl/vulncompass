@@ -80,6 +80,8 @@ jobs:
         image: arizephoenix/phoenix:latest
         ports:
           - 6006:6006
+        env:
+          PHOENIX_DISABLE_AUTHENTICATION: true
     steps:
       - uses: actions/checkout@v4
 
@@ -104,20 +106,6 @@ jobs:
             sleep 2
           done
 
-      - name: Diagnose secrets
-        run: |
-          echo "OPENAI_API_KEY length: ${#OPENAI_API_KEY}"
-          echo "All env keys containing 'OPENAI': $(env | grep -i openai | sed 's/=.*/=<masked>/' || echo 'none')"
-          echo "Secrets context test: ${{ secrets.OPENAI_API_KEY != '' }}"
-
-      - name: Check OPENAI_API_KEY is set
-        run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "ERROR: OPENAI_API_KEY secret is empty or not set" >&2
-            exit 1
-          fi
-          echo "OPENAI_API_KEY is set (length: ${#OPENAI_API_KEY})"
-
       - name: Run scope-only eval (fail below 100%)
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
@@ -137,6 +125,8 @@ jobs:
         image: arizephoenix/phoenix:latest
         ports:
           - 6006:6006
+        env:
+          PHOENIX_DISABLE_AUTHENTICATION: true
     steps:
       - uses: actions/checkout@v4
 
