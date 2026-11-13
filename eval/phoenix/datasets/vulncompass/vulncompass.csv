@@ -9,7 +9,7 @@ low mission criticality, and compensating controls are present. The vendor
 scored it Critical with risk score 910.",proposed_closure | confirmed not affected | high confidence
 Q-03,"Assess finding F-007 for CVE-2099-0002 on ASSET-007 (synthetic-vendor,
 finding V-1007). Applicability is unknown, internet exposure is public,
-mission criticality is high. Vendor scored it High.",investigate applicability | applicability is unknown
+mission criticality is high. Vendor scored it High.",investigate_applicability | fields are unknown
 Q-04,"Assess finding F-008 for CVE-2099-0003 on ASSET-008 (synthetic-vendor,
 finding V-1008). All local context fields are unknown. Vendor scored it High.
 What source conflict does VulnCompass report?",REJECTED | Nuclei
@@ -20,7 +20,7 @@ finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendo
 F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
 F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
-F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | Immediate Review
+F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | immediate_review
 Q-06,"Prioritize this backlog and tell me where F-004 ranks and what recommendation VulnCompass gives it:
 
 finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
