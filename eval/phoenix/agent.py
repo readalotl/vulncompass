@@ -74,10 +74,19 @@ async def _call_mcp_async(tool_name: str, arguments: dict[str, Any]) -> str:
 
 def _call_mcp(tool_name: str, arguments: dict[str, Any]) -> str:
     """Synchronous bridge safe to call from any thread, including LangGraph's
-    ThreadPoolExecutor workers which already run inside an async context."""
+    ThreadPoolExecutor workers which already run inside an async context.
+
+    MCP tool errors are returned as plain text (prefixed with "Error:") rather
+    than raised, so the LLM receives the error message as a tool response and
+    can relay it to the user instead of crashing the agent loop.
+    """
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        return pool.submit(asyncio.run, _call_mcp_async(tool_name, arguments)).result()
+        try:
+            future = pool.submit(asyncio.run, _call_mcp_async(tool_name, arguments))
+            return future.result()
+        except Exception as exc:  # noqa: BLE001
+            return f"Error: {exc}"
 
 
 # ── Flat-parameter LangChain tools ───────────────────────────────────────────
@@ -156,11 +165,11 @@ def prioritize_findings(
 def detect_material_changes(
     cve_id: str,
     previous_kev_listed: bool,
-    previous_nvd_cvss_vector: Optional[str],
-    previous_nvd_status: Optional[str],
     current_kev_listed: bool,
-    current_nvd_cvss_vector: Optional[str],
-    current_nvd_status: Optional[str],
+    previous_nvd_cvss_vector: Optional[str] = None,
+    previous_nvd_status: Optional[str] = None,
+    current_nvd_cvss_vector: Optional[str] = None,
+    current_nvd_status: Optional[str] = None,
     previous_retrieved_at: str = "2000-01-01T00:00:00Z",
     current_retrieved_at: str = "2000-01-02T00:00:00Z",
     previous_ssvc_exploitation: Optional[str] = None,
@@ -307,18 +316,10 @@ class VulnCompassAgent:
         )
 
     def invoke(self, question: str) -> str:
-        """Run the agent on a natural-language question and return the final answer.
-
-        Tool errors (e.g. attempting record_analyst_decision on an unassessed
-        finding) are returned as a plain-text answer rather than re-raised, so
-        the correctness judge sees the error message instead of a Python exception.
-        """
+        """Run the agent on a natural-language question and return the final answer."""
         self._ensure_built()
         assert self._agent is not None
-        try:
-            result = self._agent.invoke({"messages": [("user", question)]})
-        except Exception as exc:  # noqa: BLE001
-            return f"Tool call failed: {exc}"
+        result = self._agent.invoke({"messages": [("user", question)]})
         messages = result.get("messages", [])
         for msg in reversed(messages):
             content = getattr(msg, "content", None)

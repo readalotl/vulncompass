@@ -65,7 +65,7 @@
     </question>
     <expected_facts>
       <fact>investigate_applicability</fact>
-      <fact>CVE Program record is REJECTED</fact>
+      <fact>REJECTED</fact>
       <fact>Nuclei</fact>
     </expected_facts>
   </row>
@@ -86,7 +86,7 @@
     <expected_facts>
       <fact>F-002</fact>
       <fact>immediate_review</fact>
-      <fact>CISA KEV</fact>
+      <fact>KEV</fact>
     </expected_facts>
   </row>
 
