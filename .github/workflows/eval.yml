@@ -1,0 +1,52 @@
+name: Eval
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      EVAL_MODEL: openai:gpt-4o-mini
+      JUDGE_MODEL: openai:gpt-4o-mini
+      PHOENIX_HOST: http://localhost:6006
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --group eval
+
+      - name: Start Phoenix
+        run: |
+          uv run --group eval phoenix serve &
+          echo $! > /tmp/phoenix.pid
+          # Wait until the HTTP endpoint is ready (up to 30 s).
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:6006 > /dev/null 2>&1 && break
+            sleep 1
+          done
+
+      - name: Run unit tests
+        run: uv run pytest --tb=short -q
+
+      - name: Run eval
+        run: |
+          uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --model "$EVAL_MODEL" \
+            --judge-model "$JUDGE_MODEL" \
+            --phoenix-host "$PHOENIX_HOST" \
+            --fail-below-scope 1.0 \
+            --fail-below-correctness 0.90
+
+      - name: Stop Phoenix
+        if: always()
+        run: kill $(cat /tmp/phoenix.pid) 2>/dev/null || true
