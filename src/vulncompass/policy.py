@@ -120,7 +120,11 @@ def assess_policy(finding: FindingInput, evidence: EvidenceSnapshot) -> Assessme
     elif finding.applicability is Applicability.UNKNOWN or missing:
         recommendation = Recommendation.INVESTIGATE_APPLICABILITY
         rules.append("U-1")
-        rationale.append("Missing local context must not reduce priority.")
+        unknown_fields = ", ".join(missing) if missing else "applicability"
+        rationale.append(
+            f"The following fields are unknown: {unknown_fields}; "
+            "missing information must not reduce priority."
+        )
     else:
         recommendation = Recommendation.ROUTINE_REMEDIATION
         rules.append("R-1")
