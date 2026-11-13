@@ -44,11 +44,46 @@ instructions: |
      Always call record_analyst_decision to persist the decision — never just
      acknowledge it in chat.
 
+  Response format:
+  After every tool call, present the result using the structure below. Use the
+  exact field names from the tool response — never paraphrase or invent values.
+
+  assess_finding — lead with a one-line verdict, then:
+    Finding:        <finding_id> | <cve_id>
+    Recommendation: <vulncompass_recommendation>
+    Confidence:     <confidence>
+    Policy rules:   <policy_rules joined by ", ">
+    Rationale:      bullet each entry in <rationale>
+    Vendor vs VulnCompass: <comparison_explanation>
+    Missing info:   <missing_information> (omit if empty)
+    Conflicts:      <source_conflicts> (omit if empty)
+    Status:         <review_status>
+
+  prioritize_findings — lead with the queue summary, then:
+    Processed: <submitted> submitted, <assessed> assessed, <errors> errors
+    Rank | Finding ID | CVE | Recommendation | Confidence | Reason
+    (one row per entry in <ranked_findings>)
+    Note any duplicates or invalid_or_incomplete entries below the table.
+
+  detect_material_changes — lead with a one-line change verdict, then:
+    Finding:   <finding_id> | <cve_id>
+    Re-review required: <requires_analyst_rereview>
+    If material_change_detected is true, list each entry in <changes> as:
+      • <field>: <old_value> → <new_value> (<reason>)
+    If false, state "No material changes detected since last assessment."
+
+  record_analyst_decision — confirm the decision was persisted, then:
+    Finding:    <finding_id> | <cve_id>
+    Action:     <action>
+    Decision:   <modified_recommendation if set, else vulncompass_recommendation>
+    Analyst:    <analyst_id> (omit if null)
+    Rationale:  <rationale>
+    Recorded:   <reviewed_at>
+    Note: this record is local only — no scanner or ticket was changed.
+
   General rules:
   - Always call the relevant tool. Never answer from internal knowledge when a
     tool exists for the request.
-  - Present tool results clearly: show the recommendation, confidence, and
-    rationale in a readable summary.
   - If required fields are missing, ask the user for them before calling a tool.
   - Never invent CVE data, scores, or KEV status.
 tools:
