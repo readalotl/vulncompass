@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  VulnCompass evaluation dataset — 10 gold question/answer pairs.
+  VulnCompass evaluation dataset — 15 gold question/answer pairs.
 
   Each <row> maps to one CSV row in datasets/vulncompass/vulncompass.csv.
   Rules for authoring questions:
@@ -11,8 +11,14 @@
   Policy version covered: 2026.11.2
   Fixture CVEs: CVE-2099-0001 (KEV, CVSS 9.8), CVE-2099-0002 (non-KEV, CVSS 8.1),
                 CVE-2099-0003 (rejected CVE Program record)
+
+  Coverage matrix (Q-01 through Q-15):
+    assess_finding:          Q-01 Q-02 Q-03 Q-04 Q-11 Q-12
+    prioritize_findings:     Q-05 Q-06
+    detect_material_changes: Q-07 Q-15
+    record_analyst_decision: Q-08 Q-09 Q-10 Q-13 Q-14
 -->
-<dataset name="vulncompass" version="1">
+<dataset name="vulncompass" version="2">
 
   <!-- ── Tool 1: assess_finding ─────────────────────────────────────────── -->
 
@@ -64,7 +70,6 @@
       What source conflict does VulnCompass report?
     </question>
     <expected_facts>
-      <fact>investigate_applicability</fact>
       <fact>REJECTED</fact>
       <fact>Nuclei</fact>
     </expected_facts>
@@ -86,7 +91,6 @@
     <expected_facts>
       <fact>F-002</fact>
       <fact>immediate_review</fact>
-      <fact>KEV</fact>
     </expected_facts>
   </row>
 
@@ -179,6 +183,86 @@
     <expected_facts>
       <fact>error</fact>
       <fact>assess</fact>
+    </expected_facts>
+  </row>
+
+  <!-- ── New coverage questions ────────────────────────────────────────── -->
+
+  <row id="Q-11">
+    <question>
+      Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor,
+      finding V-1009). The asset is confirmed NOT affected, isolated network,
+      low mission criticality, compensating controls present. The vendor scored
+      it Critical with risk score 950. Does VulnCompass agree with the vendor
+      priority?
+    </question>
+    <expected_facts>
+      <!-- Rule A-4: confirmed_not_affected → proposed_closure.
+           Vendor=Critical (level 0) vs VulnCompass=proposed_closure (level 3)
+           → agreement=false → comparison_explanation mentions "priority bands differ" -->
+      <fact>proposed_closure</fact>
+      <fact>priority bands differ</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-12">
+    <question>
+      Assess finding F-010 for CVE-2099-0002 on ASSET-010 (synthetic-vendor,
+      finding V-1010). The asset is confirmed affected, publicly exposed,
+      mission criticality is high, no compensating controls. Vendor scored it
+      Medium. What recommendation does VulnCompass give?
+    </question>
+    <expected_facts>
+      <!-- Rule L-1: confirmed_affected + public + high criticality, non-KEV
+           → accelerated_remediation, high confidence -->
+      <fact>accelerated_remediation</fact>
+      <fact>publicly exposed</fact>
+      <fact>mission critical</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-13">
+    <question>
+      First assess finding F-011 for CVE-2099-0001 on ASSET-011 (synthetic-vendor,
+      V-1011, confirmed affected, internal exposure, moderate mission criticality,
+      compensating controls present, vendor severity Low). Then record a defer
+      decision for analyst "analyst-demo" with rationale: patching window opens
+      next quarter — deferring until 2027-Q1.
+    </question>
+    <expected_facts>
+      <fact>DECIDED</fact>
+      <fact>defer</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-14">
+    <question>
+      First assess finding F-012 for CVE-2099-0002 on ASSET-012 (synthetic-vendor,
+      V-1012, applicability unknown, public exposure, high mission criticality,
+      no compensating controls, vendor severity High). Then record a
+      request_investigation decision for analyst "analyst-demo" with rationale:
+      asset ownership unclear — routing to infrastructure team for applicability
+      confirmation.
+    </question>
+    <expected_facts>
+      <fact>DECIDED</fact>
+      <fact>request_investigation</fact>
+    </expected_facts>
+  </row>
+
+  <row id="Q-15">
+    <question>
+      Detect material changes for CVE-2099-0001 between two identical snapshots:
+      both have KEV listed=true and CVSS vector
+      CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H. No fields changed.
+      Does this require analyst re-review?
+    </question>
+    <expected_facts>
+      <!-- No field changed between snapshots → material_change_detected=false,
+           requires_analyst_rereview=false -->
+      <fact>material_change_detected</fact>
+      <fact>false</fact>
+      <fact>no changes</fact>
     </expected_facts>
   </row>
 

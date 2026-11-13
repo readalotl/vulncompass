@@ -153,13 +153,13 @@ jobs:
             sleep 2
           done
 
-      - name: Run correctness eval (fail below 80%)
+      - name: Run correctness eval (fail below 90%)
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
             --model openai:gpt-4o-mini \
             --judge-model openai:gpt-4o-mini \
             --fail-below-scope 1.0 \
-            --fail-below-correctness 0.8
+            --fail-below-correctness 0.9
         env:
           PHOENIX_HOST: http://localhost:6006
 
