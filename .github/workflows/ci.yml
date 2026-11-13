@@ -73,6 +73,8 @@ jobs:
     name: Eval – scope judge
     runs-on: ubuntu-latest
     needs: test
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     services:
       phoenix:
         image: arizephoenix/phoenix:latest
@@ -102,6 +104,14 @@ jobs:
             sleep 2
           done
 
+      - name: Check OPENAI_API_KEY is set
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "ERROR: OPENAI_API_KEY secret is empty or not set" >&2
+            exit 1
+          fi
+          echo "OPENAI_API_KEY is set (length: ${#OPENAI_API_KEY})"
+
       - name: Run scope-only eval (fail below 100%)
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
@@ -110,7 +120,6 @@ jobs:
             --fail-below-scope 1.0
         env:
           PHOENIX_HOST: http://localhost:6006
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   # ── Eval – correctness judge (requires OPENAI_API_KEY) ───────────────────
   eval-correctness:
