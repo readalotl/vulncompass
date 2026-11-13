@@ -307,10 +307,18 @@ class VulnCompassAgent:
         )
 
     def invoke(self, question: str) -> str:
-        """Run the agent on a natural-language question and return the final answer."""
+        """Run the agent on a natural-language question and return the final answer.
+
+        Tool errors (e.g. attempting record_analyst_decision on an unassessed
+        finding) are returned as a plain-text answer rather than re-raised, so
+        the correctness judge sees the error message instead of a Python exception.
+        """
         self._ensure_built()
         assert self._agent is not None
-        result = self._agent.invoke({"messages": [("user", question)]})
+        try:
+            result = self._agent.invoke({"messages": [("user", question)]})
+        except Exception as exc:  # noqa: BLE001
+            return f"Tool call failed: {exc}"
         messages = result.get("messages", [])
         for msg in reversed(messages):
             content = getattr(msg, "content", None)
