@@ -73,7 +73,7 @@ jobs:
     name: Eval – scope judge
     runs-on: ubuntu-latest
     needs: test
-    if: ${{ vars.ENABLE_CORRECTNESS_EVAL == 'true' }}
+    if: vars.ENABLE_CORRECTNESS_EVAL == 'true'
     services:
       phoenix:
         image: arizephoenix/phoenix:latest
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     # Only run when the secret is available (not on PRs from forks).
-    if: ${{ vars.ENABLE_CORRECTNESS_EVAL == 'true' }}
+    if: vars.ENABLE_CORRECTNESS_EVAL == 'true'
     services:
       phoenix:
         image: arizephoenix/phoenix:latest
