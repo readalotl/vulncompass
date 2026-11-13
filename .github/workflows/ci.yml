@@ -87,8 +87,20 @@ jobs:
       - name: Install Python
         run: uv python install 3.11
 
-      - name: Install eval dependencies
+      - name: Install dependencies (main + eval)
         run: uv sync --frozen --group eval
+
+      - name: Verify MCP server starts
+        run: |
+          uv run python -m vulncompass.app &
+          MCP_PID=$!
+          sleep 5
+          if ! kill -0 $MCP_PID 2>/dev/null; then
+            echo "ERROR: MCP server process exited immediately" >&2
+            exit 1
+          fi
+          kill $MCP_PID
+          echo "MCP server started OK (pid $MCP_PID)"
 
       - name: Wait for Phoenix to be ready
         run: |
@@ -131,7 +143,7 @@ jobs:
       - name: Install Python
         run: uv python install 3.11
 
-      - name: Install eval dependencies
+      - name: Install dependencies (main + eval)
         run: uv sync --frozen --group eval
 
       - name: Wait for Phoenix to be ready
