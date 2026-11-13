@@ -59,6 +59,10 @@ def _make_auth_middleware(api_key: str):
 def main() -> None:
     platform_port = os.getenv("DATABRICKS_APP_PORT") or os.getenv("PORT")
     if platform_port:
+        # WARNING: this path starts an unauthenticated HTTP server bound to
+        # 0.0.0.0. MCP_API_KEY is not checked here. This is intentional for
+        # the hackathon/sandbox posture but MUST be fixed before any
+        # non-sandbox deployment. See eval/README.md § Security Considerations.
         mcp.run(transport="http", host="0.0.0.0", port=int(platform_port))
     elif settings.mcp_transport == "streamable-http":
         kwargs: dict = {

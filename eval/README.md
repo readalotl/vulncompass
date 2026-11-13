@@ -137,12 +137,29 @@ across the same commit on consecutive CI runs).
 
 ### Authentication and transport
 
-The MCP server exposes its `/mcp` endpoint **without authentication** by
-default. This posture is acceptable for public-data pilots and local
-development. Before production deployment:
+**This is an unauthenticated sandbox prototype. It is not approved or
+suitable for production use.**
 
+The server has three startup paths, each with different auth behavior:
+
+| Startup path | Trigger | Auth enforced? |
+|---|---|---|
+| `stdio` | default, eval harness | N/A — local pipe, no network exposure |
+| `streamable-http` | `MCP_TRANSPORT=streamable-http` | Only if `MCP_API_KEY` is set; silently unauthenticated if the key is absent |
+| Platform HTTP | `DATABRICKS_APP_PORT` or `PORT` set | **Never** — auth middleware is not applied on this path |
+
+The platform HTTP path (`DATABRICKS_APP_PORT` / `PORT`) binds to
+`0.0.0.0` with no authentication regardless of whether `MCP_API_KEY` is
+set. Any client that can reach the port can call every tool.
+
+**Before any non-hackathon deployment:**
+
+- Fix the platform HTTP path to apply auth middleware on the same
+  conditions as the `streamable-http` path.
+- Require `MCP_API_KEY` to be set when any HTTP transport is used; refuse
+  to start if it is absent.
 - Front the endpoint with a reverse proxy that enforces mTLS or token
-  authentication.
+  authentication as a defence-in-depth layer.
 - Review your agency's ATO requirements before connecting to any network
   beyond localhost.
 - Never commit secrets — keep API keys in environment variables or `.env`
