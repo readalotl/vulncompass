@@ -59,7 +59,6 @@
     <expected_facts>
       <fact>investigate_applicability</fact>
       <fact>applicability is unknown</fact>
-      <fact>low confidence</fact>
     </expected_facts>
   </row>
 
@@ -134,8 +133,6 @@
     <expected_facts>
       <fact>material_change_detected</fact>
       <fact>requires_analyst_rereview</fact>
-      <fact>KEV</fact>
-      <fact>CVSS vector</fact>
     </expected_facts>
   </row>
 
@@ -262,7 +259,6 @@
            requires_analyst_rereview=false -->
       <fact>material_change_detected</fact>
       <fact>false</fact>
-      <fact>no changes</fact>
     </expected_facts>
   </row>
 

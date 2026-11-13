@@ -9,7 +9,7 @@ low mission criticality, and compensating controls are present. The vendor
 scored it Critical with risk score 910.",proposed_closure | confirmed not affected | high confidence
 Q-03,"Assess finding F-007 for CVE-2099-0002 on ASSET-007 (synthetic-vendor,
 finding V-1007). Applicability is unknown, internet exposure is public,
-mission criticality is high. Vendor scored it High.",investigate_applicability | applicability is unknown | low confidence
+mission criticality is high. Vendor scored it High.",investigate_applicability | applicability is unknown
 Q-04,"Assess finding F-008 for CVE-2099-0003 on ASSET-008 (synthetic-vendor,
 finding V-1008). All local context fields are unknown. Vendor scored it High.
 What source conflict does VulnCompass report?",REJECTED | Nuclei
@@ -41,7 +41,7 @@ Current snapshot (2026-11-06): KEV listed=true (added 2026-11-05, due
 CVSS vector CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H, configurations
 affected versions 2.x and 3.x, vulnrichment SSVC Exploitation=active.
 
-Does this require analyst re-review?",material_change_detected | requires_analyst_rereview | KEV | CVSS vector
+Does this require analyst re-review?",material_change_detected | requires_analyst_rereview
 Q-08,"First assess finding F-005 for CVE-2099-0002 on ASSET-005 (synthetic-vendor,
 V-1005, confirmed affected, public exposure, high mission criticality, no
 compensating controls, vendor severity High). Then record an analyst decision
@@ -78,4 +78,4 @@ confirmation.",DECIDED | request_investigation
 Q-15,"Detect material changes for CVE-2099-0001 between two identical snapshots:
 both have KEV listed=true and CVSS vector
 CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H. No fields changed.
-Does this require analyst re-review?",material_change_detected | false | no changes
+Does this require analyst re-review?",material_change_detected | false

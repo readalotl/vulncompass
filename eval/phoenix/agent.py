@@ -13,6 +13,7 @@ module.
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,14 @@ from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
+
+# Holds the shared fastmcp Client for the duration of one agent.invoke() call
+# so that assess_finding and record_analyst_decision share one server process
+# (and therefore one SQLite connection) rather than spawning a new subprocess
+# per tool call.
+_mcp_client: contextvars.ContextVar[Client | None] = contextvars.ContextVar(
+    "_mcp_client", default=None
+)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -57,9 +66,10 @@ def _load_system_prompt() -> str:
 
 # ── MCP call helper ───────────────────────────────────────────────────────────
 
-async def _call_mcp_async(tool_name: str, arguments: dict[str, Any]) -> str:
-    async with Client(_transport()) as c:
-        result = await c.call_tool(tool_name, arguments)
+async def _call_tool_on_client(
+    client: Client, tool_name: str, arguments: dict[str, Any]
+) -> str:
+    result = await client.call_tool(tool_name, arguments)
     # fastmcp 4.x: CallToolResult.content is a list of TextContent objects.
     parts = []
     for item in result.content:
@@ -72,21 +82,48 @@ async def _call_mcp_async(tool_name: str, arguments: dict[str, Any]) -> str:
     return "\n".join(parts)
 
 
+async def _call_mcp_async(tool_name: str, arguments: dict[str, Any]) -> str:
+    client = _mcp_client.get()
+    if client is not None:
+        # Reuse the shared client opened by invoke() — same server process,
+        # same SQLite connection, so assess → record_decision works correctly.
+        return await _call_tool_on_client(client, tool_name, arguments)
+    # Fallback: open a one-shot client (used if called outside invoke()).
+    async with Client(_transport()) as c:
+        return await _call_tool_on_client(c, tool_name, arguments)
+
+
+# The event loop running the shared MCP client (set by invoke()).
+_mcp_loop: contextvars.ContextVar[asyncio.AbstractEventLoop | None] = (
+    contextvars.ContextVar("_mcp_loop", default=None)
+)
+
+
 def _call_mcp(tool_name: str, arguments: dict[str, Any]) -> str:
     """Synchronous bridge safe to call from any thread, including LangGraph's
     ThreadPoolExecutor workers which already run inside an async context.
 
-    MCP tool errors are returned as plain text (prefixed with "Error:") rather
-    than raised, so the LLM receives the error message as a tool response and
-    can relay it to the user instead of crashing the agent loop.
+    When a shared client is active (inside invoke()), schedules the coroutine
+    on the outer event loop so the client is called from its own thread.
+    MCP tool errors are returned as plain text so the LLM can relay them.
     """
-    import concurrent.futures
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        try:
-            future = pool.submit(asyncio.run, _call_mcp_async(tool_name, arguments))
+    try:
+        loop = _mcp_loop.get()
+        if loop is not None:
+            # We are on a worker thread; submit the coroutine to the event loop
+            # running on the main thread and block until it completes.
+            import concurrent.futures
+            future: concurrent.futures.Future[str] = asyncio.run_coroutine_threadsafe(
+                _call_mcp_async(tool_name, arguments), loop
+            )
             return future.result()
-        except Exception as exc:  # noqa: BLE001
-            return f"Error: {exc}"
+        # No shared client — spin up a fresh event loop (fallback / standalone).
+        import concurrent.futures as _cf
+        with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+            f = pool.submit(asyncio.run, _call_mcp_async(tool_name, arguments))
+            return f.result()
+    except Exception as exc:  # noqa: BLE001
+        return f"Error: {exc}"
 
 
 # ── Flat-parameter LangChain tools ───────────────────────────────────────────
@@ -316,10 +353,41 @@ class VulnCompassAgent:
         )
 
     def invoke(self, question: str) -> str:
-        """Run the agent on a natural-language question and return the final answer."""
+        """Run the agent on a natural-language question and return the final answer.
+
+        Opens one MCP server subprocess for the entire question so that
+        multi-step questions (assess then record_decision) share a single
+        SQLite connection and the assessment is visible to later tool calls.
+        """
         self._ensure_built()
         assert self._agent is not None
-        result = self._agent.invoke({"messages": [("user", question)]})
+
+        async def _run_with_client() -> Any:
+            async with Client(_transport()) as client:
+                loop = asyncio.get_running_loop()
+                _mcp_client.set(client)
+                _mcp_loop.set(loop)
+                # Snapshot the context *after* setting the vars so the worker
+                # thread inherits them (run_in_executor does not copy context).
+                ctx = contextvars.copy_context()
+                try:
+                    # agent.invoke() is sync; run it in a worker thread so it
+                    # can call asyncio.run_coroutine_threadsafe() back onto
+                    # this event loop without deadlocking.
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        return await loop.run_in_executor(
+                            pool,
+                            lambda: ctx.run(  # propagate _mcp_client/_mcp_loop
+                                self._agent.invoke,  # type: ignore[union-attr]
+                                {"messages": [("user", question)]},
+                            ),
+                        )
+                finally:
+                    _mcp_client.set(None)
+                    _mcp_loop.set(None)
+
+        result = asyncio.run(_run_with_client())
         messages = result.get("messages", [])
         for msg in reversed(messages):
             content = getattr(msg, "content", None)
