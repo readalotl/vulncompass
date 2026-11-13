@@ -327,7 +327,15 @@ def _build_llm(model: str):
     """
     if model.startswith("openai:"):
         from langchain_openai import ChatOpenAI
-        return ChatOpenAI(model=model[len("openai:"):], temperature=0)
+        # Disable parallel tool calls: multi-step questions like
+        # "assess then record" require sequential execution so the
+        # assess_finding result is persisted before record_analyst_decision
+        # tries to look it up.
+        return ChatOpenAI(
+            model=model[len("openai:"):],
+            temperature=0,
+            model_kwargs={"parallel_tool_calls": False},
+        )
     from langchain_ollama import ChatOllama
     return ChatOllama(model=model, temperature=0)
 

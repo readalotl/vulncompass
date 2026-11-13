@@ -57,7 +57,7 @@
       mission criticality is high. Vendor scored it High.
     </question>
     <expected_facts>
-      <fact>investigate_applicability</fact>
+      <fact>investigate applicability</fact>
       <fact>applicability is unknown</fact>
     </expected_facts>
   </row>
@@ -89,7 +89,7 @@
     </question>
     <expected_facts>
       <fact>F-002</fact>
-      <fact>immediate_review</fact>
+      <fact>Immediate Review</fact>
     </expected_facts>
   </row>
 
@@ -256,9 +256,9 @@
     </question>
     <expected_facts>
       <!-- No field changed between snapshots → material_change_detected=false,
-           requires_analyst_rereview=false -->
-      <fact>material_change_detected</fact>
-      <fact>false</fact>
+           requires_analyst_rereview=false. Agent summarises in natural English. -->
+      <fact>no material changes</fact>
+      <fact>no re-review required</fact>
     </expected_facts>
   </row>
 
