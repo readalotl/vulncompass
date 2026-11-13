@@ -113,6 +113,27 @@ def main(argv: list[str] | None = None) -> None:
             "Prefix with 'openai:' to use ChatOpenAI, e.g. openai:gpt-4o-mini."
         ),
     )
+    parser.add_argument(
+        "--fail-below-scope",
+        type=float,
+        default=None,
+        metavar="RATE",
+        help=(
+            "Exit 1 if the scope pass rate is strictly below RATE (0.0–1.0). "
+            "Example: --fail-below-scope 1.0 fails unless every question called a tool."
+        ),
+    )
+    parser.add_argument(
+        "--fail-below-correctness",
+        type=float,
+        default=None,
+        metavar="RATE",
+        help=(
+            "Exit 1 if the correctness pass rate is strictly below RATE (0.0–1.0). "
+            "Ignored when --skip-correctness-judge is set. "
+            "Example: --fail-below-correctness 0.8 fails if fewer than 80%% are correct."
+        ),
+    )
     args = parser.parse_args(argv)
 
     if args.model.startswith("openai:") and not os.environ.get("OPENAI_API_KEY"):
@@ -241,6 +262,30 @@ def main(argv: list[str] | None = None) -> None:
     if corr_mean is not None:
         print(f"Correctness (LLM judge): {corr_mean:.0%}  ({sum(correctness_scores)}/{len(correctness_scores)})")
     print(f"\nTraces logged to Phoenix project 'vulncompass-eval' at {args.phoenix_host}")
+
+    # ── Threshold gates (exit 1 on regression) ───────────────────────────────
+    failed = False
+    if args.fail_below_scope is not None and scope_mean < args.fail_below_scope:
+        print(
+            f"\nFAIL: scope pass rate {scope_mean:.0%} is below threshold "
+            f"{args.fail_below_scope:.0%} (--fail-below-scope).",
+            file=sys.stderr,
+        )
+        failed = True
+    if (
+        args.fail_below_correctness is not None
+        and not args.skip_correctness_judge
+        and corr_mean is not None
+        and corr_mean < args.fail_below_correctness
+    ):
+        print(
+            f"\nFAIL: correctness pass rate {corr_mean:.0%} is below threshold "
+            f"{args.fail_below_correctness:.0%} (--fail-below-correctness).",
+            file=sys.stderr,
+        )
+        failed = True
+    if failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

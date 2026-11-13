@@ -64,6 +64,94 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/ -v
 
+  # ── Eval – scope judge (no LLM, no API key required) ─────────────────────
+  eval-scope:
+    name: Eval – scope judge
+    runs-on: ubuntu-latest
+    needs: test
+    services:
+      phoenix:
+        image: arizephoenix/phoenix:latest
+        ports:
+          - 6006:6006
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.3"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Install eval dependencies
+        run: uv sync --frozen --group eval
+
+      - name: Wait for Phoenix to be ready
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:6006/healthz && break
+            echo "Waiting for Phoenix… ($i/30)"
+            sleep 2
+          done
+
+      - name: Run scope-only eval (fail below 100%)
+        run: |
+          uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --skip-correctness-judge \
+            --fail-below-scope 1.0
+        env:
+          PHOENIX_HOST: http://localhost:6006
+
+  # ── Eval – correctness judge (requires OPENAI_API_KEY, skipped on forks) ──
+  eval-correctness:
+    name: Eval – correctness judge
+    runs-on: ubuntu-latest
+    needs: test
+    # Only run when the secret is available (not on PRs from forks).
+    if: ${{ vars.ENABLE_CORRECTNESS_EVAL == 'true' }}
+    services:
+      phoenix:
+        image: arizephoenix/phoenix:latest
+        ports:
+          - 6006:6006
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.7.3"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python
+        run: uv python install 3.11
+
+      - name: Install eval dependencies
+        run: uv sync --frozen --group eval
+
+      - name: Wait for Phoenix to be ready
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:6006/healthz && break
+            echo "Waiting for Phoenix… ($i/30)"
+            sleep 2
+          done
+
+      - name: Run correctness eval (fail below 80%)
+        run: |
+          uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --judge-model openai:gpt-4o-mini \
+            --fail-below-scope 1.0 \
+            --fail-below-correctness 0.8
+        env:
+          PHOENIX_HOST: http://localhost:6006
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
   # ── Deploy (manual only) ──────────────────────────────────────────────────
   # Deployment to IBM watsonx Orchestrate is intentionally manual until durable
   # storage (non-SQLite) and MCP transport authentication are settled.
