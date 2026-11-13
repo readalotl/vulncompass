@@ -120,6 +120,8 @@ jobs:
     name: Eval – correctness judge
     runs-on: ubuntu-latest
     needs: test
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     services:
       phoenix:
         image: arizephoenix/phoenix:latest
@@ -154,12 +156,12 @@ jobs:
       - name: Run correctness eval (fail below 80%)
         run: |
           uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --model openai:gpt-4o-mini \
             --judge-model openai:gpt-4o-mini \
             --fail-below-scope 1.0 \
             --fail-below-correctness 0.8
         env:
           PHOENIX_HOST: http://localhost:6006
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
   # ── Deploy (manual only) ──────────────────────────────────────────────────
   # Deployment to IBM watsonx Orchestrate is intentionally manual until durable
