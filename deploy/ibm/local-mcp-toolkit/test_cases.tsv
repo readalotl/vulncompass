@@ -1,0 +1,5 @@
+story	expected_output	agent
+Assess finding F-001 for CVE-2099-0001. Asset is ASSET-001, reported by synthetic-vendor (source finding V-1001). The asset is confirmed affected, publicly exposed, mission-critical, and has no compensating controls. Vendor severity is High.	immediate_review	vulncompass_agent
+Prioritize these two findings for my analyst queue: finding F-002 on asset ASSET-002 for CVE-2099-0001 reported by synthetic-vendor (source finding V-1002), confirmed affected, public exposure, high criticality, no controls; and finding F-003 on asset ASSET-003 for CVE-2099-0002 reported by synthetic-vendor (source finding V-1003), applicability unknown.	ranked_findings	vulncompass_agent
+Check whether public evidence has materially changed for CVE-2099-0001 since the last assessment of finding F-001.	material_change_detected	vulncompass_agent
+Record an analyst decision for finding F-001: I approve it for accelerated remediation. Rationale is that the asset is internet-facing and mission-critical with no mitigations in place.	reviewed_at	vulncompass_agent
