@@ -11,6 +11,34 @@ This project is based on the
 and retains its FastMCP structure, test workflow, container build, cloud.gov
 manifest, and deployment kits.
 
+> [!WARNING]
+> **Prototype — not production-ready**
+>
+> VulnCompass is a hackathon prototype intended for demonstrations, evaluation,
+> and controlled internal testing. It is not an authorized production
+> vulnerability-management system.
+>
+> Agencies should not expose this MCP server to an untrusted network or use it
+> with sensitive production data until appropriate security and operational
+> controls are implemented and assessed. At a minimum, these controls include:
+>
+> - Authentication and role-based access control
+> - User and tenant isolation
+> - Protected transport and endpoint security
+> - Audit logging and retention
+> - Secure secrets management
+> - Monitoring, rate limiting, and incident response
+> - Database backup, recovery, and retention procedures
+> - Agency-specific security assessment and authorization
+>
+> Controlled testing should use synthetic or pseudonymized asset identifiers in
+> an access-restricted environment. VulnCompass recommendations remain advisory
+> and require human review before any action is taken.
+>
+> This list is not exhaustive. Each deploying organization is responsible for
+> determining the controls required by its policies, risk tolerance, and
+> authorization process.
+
 ## What it does
 
 - Accepts a generic vendor finding with locally supplied applicability,
@@ -268,7 +296,6 @@ resides — and who controls it — differs by deployment:
 | **Analyst workstation** (stdio via MCP client) | Analyst's own filesystem | Analyst |
 | **watsonx Orchestrate local MCP toolkit** | Orchestrate runtime filesystem (inside the managed Orchestrate environment, not the analyst's workstation) | IBM-managed Orchestrate runtime |
 | **cloud.gov / Code Engine HTTP** | Container ephemeral filesystem — lost on restart unless a persistent volume is mounted | Platform operator |
-| **Databricks App** | Databricks cluster ephemeral storage — lost on restart unless an external store is configured | Platform operator |
 
 **Implications for operational deployments:**
 
@@ -279,20 +306,20 @@ resides — and who controls it — differs by deployment:
   restarts, but the data is still held by the Orchestrate platform. Review your
   agency's data-handling requirements before passing real asset identifiers or
   findings through this deployment path.
-- In **HTTP deployments** (cloud.gov, Code Engine, Databricks), the container
-  filesystem is ephemeral. Assessments and decisions are lost on restart unless
-  `DATA_DIR` is pointed at a mounted persistent volume or external database.
+- In **HTTP deployments** (cloud.gov, Code Engine), the container filesystem is
+  ephemeral. Assessments and decisions are lost on restart unless `DATA_DIR` is
+  pointed at a mounted persistent volume or external database.
 - For any deployment outside a single analyst's workstation, the `DATA_DIR`
   path should be set explicitly via the `DATA_DIR` environment variable rather
   than relying on the process working directory.
 
 ## Deployment
 
-The inherited `deploy/` kits and `manifest.yaml` support cloud.gov, IBM, and
-Databricks packaging. They are demonstration scaffolds, not production security
-profiles. Before remote deployment, add platform authentication, per-tool
-authorization, encrypted storage, ingress restrictions, and enforced egress
-allowlisting.
+The inherited `deploy/` kits and `manifest.yaml` support cloud.gov and IBM
+(watsonx Orchestrate, Code Engine) packaging. They are demonstration scaffolds,
+not production security profiles. Before remote deployment, add platform
+authentication, per-tool authorization, encrypted storage, ingress restrictions,
+and enforced egress allowlisting.
 
 ## License
 
