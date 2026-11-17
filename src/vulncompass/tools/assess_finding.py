@@ -36,6 +36,19 @@ def register(mcp: FastMCP) -> None:
 
         Only the CVE identifier is used for public lookups. Asset identifiers,
         mission context, vendor details, and analyst data remain local.
+
+        When presenting the result, always include:
+        - vulncompass_recommendation, confidence, policy_rules, and review_status
+          verbatim from the tool response.
+        - The agreement field and comparison_explanation together: state whether
+          vendor priority and VulnCompass recommendation agree, and quote the
+          comparison_explanation. If agreement is false, make clear this does not
+          mean the vendor is wrong.
+        - Any entry in the rationale list that mentions Nuclei must be quoted in
+          full; it is not proof of weaponization, active exploitation, or local
+          applicability.
+        - missing_information and source_conflicts when non-empty.
+        Do not invent, omit, or paraphrase these fields.
         """
         assessment = await assess_finding_service(finding, mode)
         return assessment.model_dump(mode="json")

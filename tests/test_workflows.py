@@ -284,3 +284,20 @@ async def test_rejected_cve_program_conflict_lowers_confidence(tmp_path) -> None
         "CVE Program record is REJECTED" in item for item in result.source_conflicts
     )
     assert any("does not prove weaponization" in item for item in result.rationale)
+
+
+@pytest.mark.asyncio
+async def test_kev_assessment_vendor_disagreement_is_explicit(tmp_path) -> None:
+    """F-001 fixture: agreement must be False and comparison_explanation non-empty.
+
+    The vendor scores F-001 as High / 742, but VulnCompass applies K-1 (CISA KEV)
+    and recommends immediate_review. These map to different priority bands, so
+    agreement must be False. The comparison_explanation must be present so the
+    agent can present the disagreement without implying the vendor is wrong.
+    """
+    repo = Repository(tmp_path / "test.db")
+    result = await assess_finding_service(finding(), repo=repo)
+    assert result.agreement is False
+    assert result.comparison_explanation
+    explanation = result.comparison_explanation.lower()
+    assert "vendor" in explanation or "band" in explanation

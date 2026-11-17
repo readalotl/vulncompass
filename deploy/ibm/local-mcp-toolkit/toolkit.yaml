@@ -10,8 +10,12 @@
 # This keeps the upload tiny, avoids a 413 "Request Entity Too Large" from
 # uploading the whole repo, and makes `vulncompass` importable at runtime.
 #
-# Orchestrate uploads package_root, installs requirements.txt, and runs `command`
-# over stdio. `python server.py` imports `vulncompass.app:mcp` and runs it.
+# WHY uv run instead of python:
+# fastmcp (and mcp) require Python >=3.10. The system Python on the
+# Orchestrate tools-runtime host may be 3.9. `uv run --python 3.12` resolves
+# and installs deps into an isolated environment using the uv-managed 3.12
+# interpreter, bypassing the system Python and the separate requirements.txt
+# install step entirely.
 #
 # This template's server needs NO credentials, so no `connections` are declared.
 # If your server needs secrets, add a connection (see README) and list it here.
@@ -19,7 +23,7 @@ spec_version: v1
 kind: mcp
 name: vulncompass
 description: "VulnCompass MCP server (local stdio transport for watsonx Orchestrate)."
-command: python server.py
+command: uv run --python 3.12 --with fastmcp --with httpx --with pydantic --with pydantic-settings server.py
 env: []
 tools:
   - "*"

@@ -163,7 +163,7 @@ def test_toolkit_yaml_name_is_vulncompass():
 
 
 def test_toolkit_yaml_command_runs_server_py():
-    assert _load_toolkit_yaml()["command"] == "python server.py"
+    assert _load_toolkit_yaml()["command"].endswith("server.py")
 
 
 def test_toolkit_yaml_tools_wildcard():
@@ -217,7 +217,7 @@ def test_register_sh_sed_preserves_other_fields():
     doc = _apply_register_sed("vulncompass", "/tmp/fake_stage")
     assert doc["spec_version"] == "v1"
     assert doc["kind"] == "mcp"
-    assert doc["command"] == "python server.py"
+    assert doc["command"].endswith("server.py")
     assert doc["tools"] == ["*"]
 
 
