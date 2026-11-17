@@ -106,6 +106,16 @@ def main(argv: list[str] | None = None) -> None:
         help="Skip the LLM-as-judge correctness step.",
     )
     parser.add_argument(
+        "--skip-policy-fidelity-judge",
+        action="store_true",
+        help="Skip the LLM-as-judge policy-fidelity step.",
+    )
+    parser.add_argument(
+        "--skip-human-review-safety-judge",
+        action="store_true",
+        help="Skip the LLM-as-judge human-review-safety step.",
+    )
+    parser.add_argument(
         "--judge-model",
         default=os.environ.get("JUDGE_MODEL", "llama3.1:8b"),
         help=(
@@ -132,6 +142,28 @@ def main(argv: list[str] | None = None) -> None:
             "Exit 1 if the correctness pass rate is strictly below RATE (0.0–1.0). "
             "Ignored when --skip-correctness-judge is set. "
             "Example: --fail-below-correctness 0.8 fails if fewer than 80%% are correct."
+        ),
+    )
+    parser.add_argument(
+        "--fail-below-policy-fidelity",
+        type=float,
+        default=None,
+        metavar="SCORE",
+        help=(
+            "Exit 1 if the mean policy-fidelity score is strictly below SCORE (0.0–1.0). "
+            "Ignored when --skip-policy-fidelity-judge is set. "
+            "Example: --fail-below-policy-fidelity 0.9"
+        ),
+    )
+    parser.add_argument(
+        "--fail-below-human-review-safety",
+        type=float,
+        default=None,
+        metavar="SCORE",
+        help=(
+            "Exit 1 if the mean human-review-safety score is strictly below SCORE (0.0–1.0). "
+            "Ignored when --skip-human-review-safety-judge is set. "
+            "Example: --fail-below-human-review-safety 0.9"
         ),
     )
     args = parser.parse_args(argv)
@@ -240,28 +272,82 @@ def main(argv: list[str] | None = None) -> None:
             {"score": None, "label": "skipped", "explanation": ""}
         ] * len(answers)
 
+    # ── Policy-fidelity judge (LLM-as-judge) ─────────────────────────────────
+    if not args.skip_policy_fidelity_judge:
+        print(f"\nRunning policy-fidelity judge ({args.judge_model})…")
+        from eval.phoenix.judges.policy_fidelity import run_policy_fidelity
+        fidelity_results = run_policy_fidelity(
+            questions, answers, judge_model=args.judge_model
+        )
+    else:
+        print("\nSkipping policy-fidelity judge (--skip-policy-fidelity-judge).")
+        fidelity_results = [
+            {"score": None, "label": "skipped", "explanation": ""}
+        ] * len(answers)
+
+    # ── Human-review-safety judge (LLM-as-judge) ─────────────────────────────
+    if not args.skip_human_review_safety_judge:
+        print(f"\nRunning human-review-safety judge ({args.judge_model})…")
+        from eval.phoenix.judges.human_review_safety import run_human_review_safety
+        safety_results = run_human_review_safety(
+            questions, answers, judge_model=args.judge_model
+        )
+    else:
+        print("\nSkipping human-review-safety judge (--skip-human-review-safety-judge).")
+        safety_results = [
+            {"score": None, "label": "skipped", "explanation": ""}
+        ] * len(answers)
+
     # ── Print results table ──────────────────────────────────────────────────
-    print("\n" + "=" * 72)
-    print(f"{'ID':<8} {'Scope':>6} {'Correct':>8}  Answer (first 80 chars)")
-    print("-" * 72)
+    print("\n" + "=" * 90)
+    print(
+        f"{'ID':<8} {'Scope':>6} {'Correct':>8} {'Fidelity':>9} {'Safety':>7}"
+        f"  Answer (first 80 chars)"
+    )
+    print("-" * 90)
     scope_scores = []
     correctness_scores = []
-    for i, (a, sr, cr) in enumerate(zip(answers, scope_results, correctness_results)):
+    fidelity_scores = []
+    safety_scores = []
+    for i, (a, sr, cr, fr, sfr) in enumerate(
+        zip(answers, scope_results, correctness_results, fidelity_results, safety_results)
+    ):
         row_id = df["id"].iloc[i] if "id" in df.columns else str(i + 1)
         scope_label = "PASS" if sr["score"] == 1 else "FAIL"
         corr_label = {1: "PASS", 0: "FAIL", None: " -- "}.get(cr["score"], "FAIL")
-        print(f"{row_id!s:<8} {scope_label:>6}  {corr_label:>8}  {a[:80].strip()!r}")
+        fid_label = (
+            " -- " if fr["score"] is None
+            else ("PASS" if fr["score"] == 1.0 else ("PART" if fr["score"] == 0.5 else "FAIL"))
+        )
+        saf_label = (
+            " -- " if sfr["score"] is None
+            else ("PASS" if sfr["score"] == 1.0 else ("PART" if sfr["score"] == 0.5 else "FAIL"))
+        )
+        print(
+            f"{row_id!s:<8} {scope_label:>6}  {corr_label:>8} {fid_label:>9} {saf_label:>7}"
+            f"  {a[:80].strip()!r}"
+        )
         scope_scores.append(sr["score"] or 0)
         if cr["score"] is not None:
             correctness_scores.append(cr["score"])
+        if fr["score"] is not None:
+            fidelity_scores.append(fr["score"])
+        if sfr["score"] is not None:
+            safety_scores.append(sfr["score"])
 
-    print("=" * 72)
+    print("=" * 90)
     n = len(scope_scores)
     scope_mean = sum(scope_scores) / n if n else 0.0
     corr_mean = sum(correctness_scores) / len(correctness_scores) if correctness_scores else None
-    print(f"\nScope (tool called):     {scope_mean:.0%}  ({sum(scope_scores)}/{n})")
+    fid_mean = sum(fidelity_scores) / len(fidelity_scores) if fidelity_scores else None
+    saf_mean = sum(safety_scores) / len(safety_scores) if safety_scores else None
+    print(f"\nScope (tool called):          {scope_mean:.0%}  ({sum(scope_scores)}/{n})")
     if corr_mean is not None:
-        print(f"Correctness (LLM judge): {corr_mean:.0%}  ({sum(correctness_scores)}/{len(correctness_scores)})")
+        print(f"Correctness (LLM judge):      {corr_mean:.0%}  ({sum(correctness_scores)}/{len(correctness_scores)})")
+    if fid_mean is not None:
+        print(f"Policy fidelity (mean):       {fid_mean:.2f}  ({len(fidelity_scores)} scored)")
+    if saf_mean is not None:
+        print(f"Human review safety (mean):   {saf_mean:.2f}  ({len(safety_scores)} scored)")
     print(f"\nTraces logged to Phoenix project 'vulncompass-eval' at {args.phoenix_host}")
 
     # ── Threshold gates (exit 1 on regression) ───────────────────────────────
@@ -282,6 +368,30 @@ def main(argv: list[str] | None = None) -> None:
         print(
             f"\nFAIL: correctness pass rate {corr_mean:.0%} is below threshold "
             f"{args.fail_below_correctness:.0%} (--fail-below-correctness).",
+            file=sys.stderr,
+        )
+        failed = True
+    if (
+        args.fail_below_policy_fidelity is not None
+        and not args.skip_policy_fidelity_judge
+        and fid_mean is not None
+        and fid_mean < args.fail_below_policy_fidelity
+    ):
+        print(
+            f"\nFAIL: policy-fidelity mean score {fid_mean:.2f} is below threshold "
+            f"{args.fail_below_policy_fidelity:.2f} (--fail-below-policy-fidelity).",
+            file=sys.stderr,
+        )
+        failed = True
+    if (
+        args.fail_below_human_review_safety is not None
+        and not args.skip_human_review_safety_judge
+        and saf_mean is not None
+        and saf_mean < args.fail_below_human_review_safety
+    ):
+        print(
+            f"\nFAIL: human-review-safety mean score {saf_mean:.2f} is below threshold "
+            f"{args.fail_below_human_review_safety:.2f} (--fail-below-human-review-safety).",
             file=sys.stderr,
         )
         failed = True
