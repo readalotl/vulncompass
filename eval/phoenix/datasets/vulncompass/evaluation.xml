@@ -88,8 +88,14 @@
       F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
     </question>
     <expected_facts>
+      <!-- F-001: confirmed_affected + KEV → K-1 → immediate_review, HIGH confidence → sort key (0, 2, "F-001").
+           F-002: likely_affected + KEV → K-1 → immediate_review, MODERATE confidence → sort key (0, 1, "F-002").
+           Confidence secondary key is ascending (LOW=0 sorts first to surface uncertain findings).
+           F-002 (0, 1) < F-001 (0, 2) → F-002 is rank-1.
+           System prompt instructs "Immediate Review" (title case) for ranking results. -->
       <fact>F-002</fact>
       <fact>Immediate Review</fact>
+      <fact>rank 1</fact>
     </expected_facts>
   </row>
 
@@ -178,8 +184,9 @@
       first assessing it. What happens?
     </question>
     <expected_facts>
+      <fact>Assess the finding before recording an analyst decision</fact>
       <fact>error</fact>
-      <fact>assess</fact>
+      <fact>F-NONEXISTENT</fact>
     </expected_facts>
   </row>
 

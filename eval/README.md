@@ -37,12 +37,12 @@ access.
 | Q-02 | `assess_finding` | `proposed_closure`, `confirmed not affected`, `high confidence` |
 | Q-03 | `assess_finding` | `investigate_applicability`, `fields are unknown` |
 | Q-04 | `assess_finding` | `REJECTED`, `Nuclei` |
-| Q-05 | `prioritize_findings` | `F-002`, `immediate_review`, `rank` |
+| Q-05 | `prioritize_findings` | `F-002`, `Immediate Review`, `rank 1` |
 | Q-06 | `prioritize_findings` | `proposed_closure`, `confirmed not affected` |
 | Q-07 | `detect_material_changes` | `material_change_detected`, `requires_analyst_rereview` |
 | Q-08 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `approve`, `accelerated_remediation` |
 | Q-09 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `modify`, `routine_remediation` |
-| Q-10 | `record_analyst_decision` (error path) | `Assess the finding before recording an analyst decision` |
+| Q-10 | `record_analyst_decision` (error path) | `Assess the finding before recording an analyst decision`, `error`, `F-NONEXISTENT` |
 | Q-11 | `assess_finding` | `proposed_closure`, `priority bands differ` |
 | Q-12 | `assess_finding` | `accelerated_remediation`, `publicly exposed`, `mission critical` |
 | Q-13 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `defer` |
