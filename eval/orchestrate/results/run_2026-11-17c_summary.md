@@ -4,9 +4,8 @@
 **Date:** 2026-11-17  
 **Status:** ✅ Accepted final — designated authoritative for this code revision  
 **Evidence commit:** `4e3d1fa`  
-**Code revision tested:** `a9c54c6` (likely — docstring hardening for `assess_finding` and
-`detect_material_changes`, `agreement` field present in fixture response)  
-**CI run:** https://github.com/ibm/vulncompass/actions (commit `a9c54c6`)
+**Code revision tested:** `a9c54c6`
+**CI run:** https://github.com/readalotl/vulncompass/actions/runs/44155868722
 
 ---
 
@@ -70,11 +69,11 @@ Full metric table: [`run_2026-11-17c_results.tsv`](run_2026-11-17c_results.tsv)
 
 ## Comparison with prior runs
 
-| Run | `policy_fidelity` (mean) | `rubric_mean_score` (mean) | `tool_call_precision` (mean) | Avg response time | Status |
-|-----|:------------------------:|:--------------------------:|:----------------------------:|:-----------------:|--------|
-| run_2026-11-17 (initial) | 0.83 | 0.92 | 1.00 | 7.95 s | Historical |
-| run_2026-11-17b (intermediate) | 0.50 | 0.75 | 0.60 | 7.73 s | Intermediate |
-| **run_2026-11-17c (this run)** | **1.00** | **1.00** | **1.00** | **6.86 s** | **Accepted final** |
+| Run | `policy_fidelity` (mean) | `rubric_mean_score` (mean) | `tool_call_precision` (mean) | Incorrect-param calls (mean) | Avg response time | Status |
+|-----|:------------------------:|:--------------------------:|:----------------------------:|:----------------------------:|:-----------------:|--------|
+| run_2026-11-17 (initial) | 0.83 | 0.92 | 1.00 | — | 7.95 s | Historical |
+| run_2026-11-17b (intermediate) | 1.00 | 1.00 | 0.90 | 0.20 | 11.84 s | Intermediate |
+| **run_2026-11-17c (this run)** | **1.00** | **1.00** | **1.00** | **0** | **6.86 s** | **Accepted final** |
 
 ### What changed between run B and run C
 
