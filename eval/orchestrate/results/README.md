@@ -27,7 +27,7 @@ carries the full per-test-case metric table exported from the Orchestrate UI.
 | [`run_2026-11-17c_results.tsv`](run_2026-11-17c_results.tsv) | 2026-11-17 | **Accepted final** | All six test cases pass. `policy_fidelity` 1.0, `rubric_mean_score` 1.0, `tool_call_precision` 1.0. See [summary](run_2026-11-17c_summary.md). |
 
 ### Code revision evaluated
-Likely **`a9c54c6`** (docstring hardening for `assess_finding` and
+**`a9c54c6`** (docstring hardening for `assess_finding` and
 `detect_material_changes`, `agreement` field present in fixture response).
 
 ### Evidence commit
