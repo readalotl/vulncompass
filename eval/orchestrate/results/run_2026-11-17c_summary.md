@@ -77,16 +77,16 @@ Full metric table: [`run_2026-11-17c_results.tsv`](run_2026-11-17c_results.tsv)
 
 ### What changed between run B and run C
 
-Run B showed extra/incorrect tool calls on TC-01, TC-02, TC-03, and TC-04
-(tool_call_precision 0.6; total_tool_calls mean 1.5 vs expected 1.0). The
-`policy_fidelity` judge also scored 0 on three cases where the agent did not
-present the `agreement` field or mischaracterised the vendor vs VulnCompass
-separation.
+Run B passed both custom rubrics but still contained extra or incorrectly
+parameterized tool calls. Its mean tool-call precision was 0.90, incorrectly
+parameterized calls averaged 0.20, and average response time was 11.84 seconds.
 
-Run C passes all cases cleanly after the `assess_finding` and
-`detect_material_changes` docstrings were updated (commit `a9c54c6`) to
-instruct the agent to present `agreement`, `comparison_explanation`, and
-`missing_information` verbatim, and to quote any Nuclei rationale in full.
+Run C eliminated those tool-call issues, restored precision to 1.00, reduced
+incorrect-parameter calls to zero, and reduced average response time to 6.86
+seconds. This followed updates to the `assess_finding` and
+`detect_material_changes` docstrings (commit `a9c54c6`) instructing the agent
+to present `agreement`, `comparison_explanation`, and `missing_information`
+verbatim, and to quote any Nuclei rationale in full.
 
 ---
 

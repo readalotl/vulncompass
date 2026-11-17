@@ -23,7 +23,7 @@ carries the full per-test-case metric table exported from the Orchestrate UI.
 | File | Date | Status | Notes |
 |------|------|--------|-------|
 | [`run_2026-11-17_results.tsv`](run_2026-11-17_results.tsv) | 2026-11-17 | Historical | Initial run. `policy_fidelity` score 0 on TC-01 (KEV test) due to missing `agreement` field in tool response. |
-| [`run_2026-11-17b_results.tsv`](run_2026-11-17b_results.tsv) | 2026-11-17 | Intermediate | Extra/incorrect tool calls on TC-01, TC-02, TC-03, TC-04. `tool_call_precision` 0.6, mean `rubric_mean_score` 0.75. |
+| [`run_2026-11-17b_results.tsv`](run_2026-11-17b_results.tsv) | 2026-11-17 | Intermediate | Passed both custom rubrics but contained extra/incorrectly parameterized tool calls. `tool_call_precision` 0.90, incorrect-param calls mean 0.20, avg response time 11.84 s. |
 | [`run_2026-11-17c_results.tsv`](run_2026-11-17c_results.tsv) | 2026-11-17 | **Accepted final** | All six test cases pass. `policy_fidelity` 1.0, `rubric_mean_score` 1.0, `tool_call_precision` 1.0. See [summary](run_2026-11-17c_summary.md). |
 
 ### Code revision evaluated
