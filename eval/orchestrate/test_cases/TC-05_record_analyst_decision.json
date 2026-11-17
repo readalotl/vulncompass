@@ -1,0 +1,56 @@
+{
+    "agent": "vulncompass_agent",
+    "goals": {
+        "assess_finding-1": [
+            "record_analyst_decision-1"
+        ],
+        "record_analyst_decision-1": [
+            "summarize"
+        ]
+    },
+    "goal_details": [
+        {
+            "type": "tool_call",
+            "name": "assess_finding-1",
+            "tool_name": "assess_finding",
+            "args": {
+                "finding_id": "F-DECISION-001",
+                "source_vendor": "synthetic-vendor",
+                "source_finding_id": "V-DECISION-001",
+                "cve_id": "CVE-2099-0001",
+                "asset_id": "ASSET-DEMO-001",
+                "vendor_priority": "High",
+                "applicability": "confirmed_affected",
+                "internet_exposure": "public",
+                "mission_criticality": "high",
+                "compensating_controls": "absent",
+                "mode": "fixture"
+            }
+        },
+        {
+            "type": "tool_call",
+            "name": "record_analyst_decision-1",
+            "tool_name": "record_analyst_decision",
+            "args": {
+                "finding_id": "F-DECISION-001",
+                "action": "approve",
+                "modified_recommendation": "immediate_review",
+                "analyst_id": "ghost-hawk",
+                "rationale": "CVE-2099-0001 is in the CISA KEV list with a CVSS score of 9.8, and the asset is mission critical and publicly exposed with no compensating controls."
+            }
+        },
+        {
+            "name": "summarize",
+            "type": "text",
+            "response": "reviewed_at",
+            "keywords": [
+                "reviewed_at",
+                "DECIDED",
+                "approve",
+                "ghost-hawk"
+            ]
+        }
+    ],
+    "story": "Assess finding F-DECISION-001 for CVE-2099-0001 on ASSET-DEMO-001, reported by synthetic-vendor (V-DECISION-001). Vendor priority is High. Asset is confirmed affected, publicly exposed, mission critical, and has no compensating controls. After assessment, approve the immediate_review recommendation. Analyst pseudonym is ghost-hawk. Rationale: CVE-2099-0001 is in the CISA KEV list with a CVSS score of 9.8, and the asset is mission critical and publicly exposed with no compensating controls.",
+    "starting_sentence": "Assess finding F-DECISION-001 for CVE-2099-0001 on ASSET-DEMO-001, reported by synthetic-vendor (V-DECISION-001). Vendor priority is High. Asset is confirmed affected, publicly exposed, mission critical, and has no compensating controls."
+}

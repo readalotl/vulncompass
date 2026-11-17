@@ -1,0 +1,41 @@
+{
+    "agent": "vulncompass_agent",
+    "goals": {
+        "assess_finding-1": [
+            "summarize"
+        ]
+    },
+    "goal_details": [
+        {
+            "type": "tool_call",
+            "name": "assess_finding-1",
+            "tool_name": "assess_finding",
+            "args": {
+                "finding_id": "F-008",
+                "source_vendor": "synthetic-vendor",
+                "source_finding_id": "V-1008",
+                "cve_id": "CVE-2099-0003",
+                "asset_id": "ASSET-008",
+                "vendor_severity": "High",
+                "vendor_priority": "High",
+                "applicability": "unknown",
+                "internet_exposure": "unknown",
+                "mission_criticality": "unknown",
+                "compensating_controls": "unknown",
+                "mode": "fixture"
+            }
+        },
+        {
+            "name": "summarize",
+            "type": "text",
+            "response": "investigate_applicability",
+            "keywords": [
+                "investigate_applicability",
+                "U-1",
+                "missing"
+            ]
+        }
+    ],
+    "story": "Assess finding F-008 for CVE-2099-0003 on ASSET-008, reported by synthetic-vendor (source finding V-1008). Vendor severity and priority are High. Applicability, internet exposure, mission criticality, and compensating controls are all unknown.",
+    "starting_sentence": "Assess finding F-008 for CVE-2099-0003 on ASSET-008, reported by synthetic-vendor (source finding V-1008). Vendor severity and priority are High. Applicability, internet exposure, mission criticality, and compensating controls are all unknown."
+}

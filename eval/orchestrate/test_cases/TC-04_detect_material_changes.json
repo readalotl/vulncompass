@@ -1,0 +1,47 @@
+{
+    "agent": "vulncompass_agent",
+    "goals": {
+        "detect_material_changes-1": [
+            "summarize"
+        ]
+    },
+    "goal_details": [
+        {
+            "type": "tool_call",
+            "name": "detect_material_changes-1",
+            "tool_name": "detect_material_changes",
+            "args": {
+                "cve_id": "CVE-2099-0002",
+                "mode": "fixture",
+                "previous_snapshot": {
+                    "cve_id": "CVE-2099-0002",
+                    "mode": "fixture",
+                    "retrieved_at": "2026-11-01T12:00:00Z",
+                    "kev": {"listed": false},
+                    "provenance": [],
+                    "unavailable_sources": []
+                },
+                "current_snapshot": {
+                    "cve_id": "CVE-2099-0002",
+                    "mode": "fixture",
+                    "retrieved_at": "2026-11-06T12:00:00Z",
+                    "kev": {"listed": true},
+                    "provenance": [],
+                    "unavailable_sources": []
+                }
+            }
+        },
+        {
+            "name": "summarize",
+            "type": "text",
+            "response": "material_change_detected",
+            "keywords": [
+                "material_change_detected",
+                "requires_analyst_rereview",
+                "kev.listed"
+            ]
+        }
+    ],
+    "story": "Compare evidence snapshots for CVE-2099-0002. The previous snapshot was retrieved on 2026-11-01 in fixture mode with KEV listed as false. The current snapshot was retrieved on 2026-11-06 in fixture mode with KEV listed as true. Determine whether analyst re-review is required.",
+    "starting_sentence": "Compare evidence snapshots for CVE-2099-0002. The previous snapshot was retrieved on 2026-11-01T12:00:00Z in fixture mode with KEV listed as false. The current snapshot was retrieved on 2026-11-06T12:00:00Z in fixture mode with KEV listed as true. Determine whether analyst re-review is required."
+}

@@ -1,0 +1,38 @@
+{
+    "agent": "vulncompass_agent",
+    "goals": {
+        "prioritize_findings-1": [
+            "summarize"
+        ]
+    },
+    "goal_details": [
+        {
+            "type": "tool_call",
+            "name": "prioritize_findings-1",
+            "tool_name": "prioritize_findings",
+            "args": {
+                "mode": "fixture",
+                "limit": 2,
+                "csv_text": "finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_priority,applicability,internet_exposure,mission_criticality,compensating_controls\nF-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,confirmed_affected,public,high,absent\nF-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,confirmed_affected,public,high,absent"
+            }
+        },
+        {
+            "name": "summarize",
+            "type": "text",
+            "response": "ranked_findings",
+            "keywords": [
+                "ranked_findings",
+                "F-001",
+                "F-005"
+            ]
+        }
+    ],
+    "story": "Prioritize these two findings for my analyst queue using fixture mode with a limit of 2. Provide the ranked results.",
+    "starting_sentence": "Prioritize these two findings for my analyst queue using fixture mode with a limit of 2. Provide the ranked results.",
+    "constraints": [
+        "prioritize_findings must be called exactly once",
+        "findings parameter must not be populated",
+        "limit must be 2",
+        "mode must be fixture"
+    ]
+}
