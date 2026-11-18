@@ -59,7 +59,7 @@ first assessing it. What happens?",Assess the finding before recording an analys
 Q-11,"Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor,
 finding V-1009). The asset is confirmed NOT affected, isolated network, low
 mission criticality, compensating controls present. The vendor scored it
-Critical with risk score 950. Does VulnCompass agree with the vendor priority?",proposed_closure | priority bands differ
+Critical with risk score 950. Does VulnCompass agree with the vendor priority?",proposed_closure | comparison_explanation | priority bands differ
 Q-12,"Assess finding F-010 for CVE-2099-0002 on ASSET-010 (synthetic-vendor,
 finding V-1010). The asset is confirmed affected, publicly exposed, mission
 criticality is high, no compensating controls. Vendor scored it Medium.
@@ -75,7 +75,10 @@ no compensating controls, vendor severity High). Then record a
 request_investigation decision for analyst ""analyst-demo"" with rationale:
 asset ownership unclear — routing to infrastructure team for applicability
 confirmation.",DECIDED | request_investigation
-Q-15,"Detect material changes for CVE-2099-0001 between two identical snapshots:
-both have KEV listed=true and CVSS vector
-CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H. No fields changed.
-Does this require analyst re-review?",no material changes | no re-review required
+Q-15,"Detect material changes for CVE-2099-0001. Use these two explicit snapshots.
+
+Previous snapshot: {""cve_id"": ""CVE-2099-0001"", ""mode"": ""fixture"", ""retrieved_at"": ""2026-11-01T00:00:00Z"", ""kev"": {""listed"": true}, ""nvd"": {""cvss"": {""vector"": ""CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H""}}}
+
+Current snapshot: {""cve_id"": ""CVE-2099-0001"", ""mode"": ""fixture"", ""retrieved_at"": ""2026-11-02T00:00:00Z"", ""kev"": {""listed"": true}, ""nvd"": {""cvss"": {""vector"": ""CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H""}}}
+
+The snapshots are identical. Does this require analyst re-review?",no material changes | no re-review required

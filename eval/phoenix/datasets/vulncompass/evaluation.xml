@@ -207,8 +207,9 @@
     <expected_facts>
       <!-- Rule A-4: confirmed_not_affected → proposed_closure.
            Vendor=Critical (level 0) vs VulnCompass=proposed_closure (level 3)
-           → agreement=false → comparison_explanation mentions "priority bands differ" -->
+           → agreement=false → comparison_explanation: "priority bands differ" verbatim. -->
       <fact>proposed_closure</fact>
+      <fact>comparison_explanation</fact>
       <fact>priority bands differ</fact>
     </expected_facts>
   </row>
@@ -260,14 +261,18 @@
 
   <row id="Q-15">
     <question>
-      Detect material changes for CVE-2099-0001 between two identical snapshots:
-      both have KEV listed=true and CVSS vector
-      CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H. No fields changed.
-      Does this require analyst re-review?
+      Detect material changes for CVE-2099-0001. Use these two explicit snapshots.
+
+      Previous snapshot: {"cve_id": "CVE-2099-0001", "mode": "fixture", "retrieved_at": "2026-11-01T00:00:00Z", "kev": {"listed": true}, "nvd": {"cvss": {"vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"}}}
+
+      Current snapshot: {"cve_id": "CVE-2099-0001", "mode": "fixture", "retrieved_at": "2026-11-02T00:00:00Z", "kev": {"listed": true}, "nvd": {"cvss": {"vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"}}}
+
+      The snapshots are identical. Does this require analyst re-review?
     </question>
     <expected_facts>
-      <!-- No field changed between snapshots → material_change_detected=false,
-           requires_analyst_rereview=false. Agent summarises in natural English. -->
+      <!-- Identical snapshots → compare_snapshots finds no changed fields
+           → material_change_detected=false, requires_analyst_rereview=false.
+           Explicit JSON snapshots avoid the agent having to construct them from prose. -->
       <fact>no material changes</fact>
       <fact>no re-review required</fact>
     </expected_facts>

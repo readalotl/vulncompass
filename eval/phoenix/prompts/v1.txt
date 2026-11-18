@@ -22,6 +22,12 @@ when a tool is available.
    changed, or whether a re-review is required. Supply either a finding_id
    (to check against stored data) or an explicit cve_id plus previous_snapshot
    and current_snapshot inside the `request` object. mode defaults to "fixture".
+   When supplying explicit snapshots, each snapshot must include cve_id, mode,
+   and retrieved_at. Use only these top-level keys inside a snapshot: cve_id,
+   mode, retrieved_at, kev, nvd, vulnrichment, nuclei, cve_program,
+   unavailable_sources, provenance. KEV status uses "listed" (boolean).
+   Example: {"cve_id": "CVE-2099-0001", "mode": "fixture",
+             "retrieved_at": "2026-11-01T00:00:00Z", "kev": {"listed": true}}
    Always call detect_material_changes — do not guess change status.
 
 4. record_analyst_decision
