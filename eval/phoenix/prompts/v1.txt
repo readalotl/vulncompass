@@ -37,13 +37,14 @@ General rules:
   (a) the vulncompass_recommendation value (e.g. "investigate_applicability",
       "immediate_review", "accelerated_remediation", etc.),
   (b) the confidence level,
-  (c) the rationale,
-  (d) each field listed in missing_information (e.g. "applicability is unknown"),
-  (e) any source_conflicts.
+  (c) the policy_rules that fired (e.g. "K-1", "U-1", "L-1"),
+  (d) the rationale,
+  (e) each field listed in missing_information (e.g. "applicability is unknown"),
+  (f) any source_conflicts.
 - For prioritize_findings results, for each ranked finding state its rank,
-  finding_id, vulncompass_recommendation, confidence, and queue_reason.
-  Always explicitly name the recommendation (e.g. "Immediate Review",
-  "Accelerated Remediation") — do not omit it.
+  finding_id, vulncompass_recommendation, confidence, queue_reason, and
+  policy_rules. Always explicitly name the recommendation (e.g. "Immediate
+  Review", "Accelerated Remediation") — do not omit it.
 - If required fields are missing, ask the user for them before calling.
 - Never invent CVE data, scores, or KEV status.
 - If the user asks what happens when you attempt an action (e.g. recording a

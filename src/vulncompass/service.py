@@ -117,6 +117,7 @@ async def prioritize_findings_service(
                 "vendor_priority": assessment.vendor_recommendation.get("priority"),
                 "vulncompass_recommendation": assessment.vulncompass_recommendation,
                 "agreement": assessment.agreement,
+                "policy_rules": assessment.policy_rules,
                 "queue_reason": assessment.rationale[0],
                 "confidence": assessment.confidence,
                 "missing_information": assessment.missing_information,
