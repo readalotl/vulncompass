@@ -17,11 +17,13 @@ Usage:
         --skip-correctness-judge
 
 Environment variables:
-    PHOENIX_HOST    Phoenix base URL (default: http://localhost:6006)
-    OPENAI_API_KEY  Only needed when --model is "openai:<model-name>"
-    EVAL_MODEL      Model for the agent (default: llama3.2:3b via Ollama)
-                    Prefix with "openai:" to use ChatOpenAI instead,
-                    e.g. EVAL_MODEL=openai:gpt-4o-mini
+    PHOENIX_HOST     Phoenix base URL (default: http://localhost:6006)
+    PHOENIX_API_KEY  API key for authenticated Phoenix instances (optional).
+                     Set this when Phoenix returns 401 on span export or queries.
+    OPENAI_API_KEY   Only needed when --model is "openai:<model-name>"
+    EVAL_MODEL       Model for the agent (default: llama3.1:8b via Ollama)
+                     Prefix with "openai:" to use ChatOpenAI instead,
+                     e.g. EVAL_MODEL=openai:gpt-4o-mini
 """
 
 from __future__ import annotations
@@ -56,9 +58,15 @@ def _setup_tracing(phoenix_host: str):
     from phoenix.otel import register
     from openinference.instrumentation.langchain import LangChainInstrumentor
 
+    headers = {}
+    api_key = os.environ.get("PHOENIX_API_KEY")
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     tracer_provider = register(
         endpoint=f"{phoenix_host.rstrip('/')}/v1/traces",
         project_name="vulncompass-eval",
+        headers=headers,
     )
     LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
     return tracer_provider

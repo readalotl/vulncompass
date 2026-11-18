@@ -56,6 +56,7 @@ jobs:
       - name: Run correctness eval
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PHOENIX_API_KEY: ${{ secrets.PHOENIX_API_KEY }}
           EVAL_MODEL: ${{ github.event.inputs.agent_model }}
           JUDGE_MODEL: ${{ github.event.inputs.judge_model }}
           PHOENIX_HOST: "http://localhost:6006"

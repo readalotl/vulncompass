@@ -6,6 +6,7 @@ A passing row has at least one span whose name matches a known VulnCompass tool.
 
 from __future__ import annotations
 
+import os
 import time
 from typing import Optional
 
@@ -82,7 +83,11 @@ def fetch_spans_for_trace(
         from phoenix.client import Client
         from phoenix.client.types.spans import SpanQuery
 
-        client = Client(base_url=phoenix_host)
+        api_key = os.environ.get("PHOENIX_API_KEY")
+        client = Client(
+            base_url=phoenix_host,
+            **({"api_key": api_key} if api_key else {}),
+        )
 
         for attempt in range(retries):
             df = client.spans.get_spans_dataframe(
