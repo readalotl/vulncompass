@@ -1,0 +1,64 @@
+name: Correctness Eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_model:
+        description: "Agent model (prefix 'openai:' for OpenAI, e.g. openai:gpt-4o-mini)"
+        required: false
+        default: "openai:gpt-4o-mini"
+      judge_model:
+        description: "Judge model (prefix 'openai:' for OpenAI, e.g. openai:gpt-4o-mini)"
+        required: false
+        default: "openai:gpt-4o-mini"
+      fail_below_correctness:
+        description: "Fail if correctness pass rate is below this threshold (0.0–1.0)"
+        required: false
+        default: "0.90"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+
+    services:
+      phoenix:
+        image: arizephoenix/phoenix:latest
+        ports:
+          - 6006:6006
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --group eval
+
+      - name: Wait for Phoenix to be ready
+        run: |
+          echo "Waiting for Phoenix at http://localhost:6006…"
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:6006/healthz > /dev/null 2>&1; then
+              echo "Phoenix is up."
+              break
+            fi
+            echo "  attempt $i/30 — sleeping 2s"
+            sleep 2
+          done
+
+      - name: Run correctness eval
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          EVAL_MODEL: ${{ github.event.inputs.agent_model }}
+          JUDGE_MODEL: ${{ github.event.inputs.judge_model }}
+          PHOENIX_HOST: "http://localhost:6006"
+        run: |
+          uv run --group eval python eval/phoenix/run_experiment.py vulncompass \
+            --fail-below-correctness ${{ github.event.inputs.fail_below_correctness }}
