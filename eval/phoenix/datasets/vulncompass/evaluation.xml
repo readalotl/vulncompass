@@ -32,7 +32,7 @@
     <expected_facts>
       <fact>immediate_review</fact>
       <fact>CISA KEV</fact>
-      <fact>high confidence</fact>
+      <fact>K-1</fact>
     </expected_facts>
   </row>
 
@@ -57,9 +57,11 @@
       mission criticality is high. Vendor scored it High.
     </question>
     <expected_facts>
+      <!-- U-1 fires when applicability or any context field is unknown.
+           Rationale: "The following fields are unknown: applicability, compensating_controls" -->
       <fact>investigate_applicability</fact>
-      <fact>applicability</fact>
-      <fact>compensating_controls</fact>
+      <fact>U-1</fact>
+      <fact>fields are unknown</fact>
     </expected_facts>
   </row>
 
@@ -93,11 +95,11 @@
            F-002: likely_affected + KEV → K-1 → immediate_review, MODERATE confidence → sort key (0, 1, "F-002").
            Confidence secondary key is ascending (LOW=0 sorts first to surface uncertain findings).
            F-002 (0, 1) < F-001 (0, 2) → F-002 is rank-1.
-           likely_affected anchors the queue_reason explaining why F-002 precedes F-001. -->
+           CISA KEV appears verbatim in the K-1 queue_reason for both F-001 and F-002. -->
       <fact>F-002</fact>
       <fact>immediate_review</fact>
       <fact>rank 1</fact>
-      <fact>likely_affected</fact>
+      <fact>CISA KEV</fact>
     </expected_facts>
   </row>
 
