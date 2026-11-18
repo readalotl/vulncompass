@@ -33,21 +33,21 @@ access.
 
 | ID | Tool exercised | Key expected facts |
 |----|---------------|-------------------|
-| Q-01 | `assess_finding` | `immediate_review`, `CISA KEV`, `high confidence` |
+| Q-01 | `assess_finding` | `immediate_review`, `CISA KEV`, `K-1` |
 | Q-02 | `assess_finding` | `proposed_closure`, `confirmed not affected`, `high confidence` |
-| Q-03 | `assess_finding` | `investigate_applicability`, `fields are unknown` |
+| Q-03 | `assess_finding` | `investigate_applicability`, `U-1`, `fields are unknown` |
 | Q-04 | `assess_finding` | `REJECTED`, `Nuclei` |
-| Q-05 | `prioritize_findings` | `F-002`, `Immediate Review`, `rank 1` |
+| Q-05 | `prioritize_findings` | `F-002`, `immediate_review`, `rank 1`, `CISA KEV` |
 | Q-06 | `prioritize_findings` | `proposed_closure`, `confirmed not affected` |
 | Q-07 | `detect_material_changes` | `material_change_detected`, `requires_analyst_rereview` |
 | Q-08 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `approve`, `accelerated_remediation` |
 | Q-09 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `modify`, `routine_remediation` |
 | Q-10 | `record_analyst_decision` (error path) | `Assess the finding before recording an analyst decision`, `error`, `F-NONEXISTENT` |
-| Q-11 | `assess_finding` | `proposed_closure`, `priority bands differ` |
+| Q-11 | `assess_finding` | `proposed_closure`, `comparison_explanation`, `priority bands differ` |
 | Q-12 | `assess_finding` | `accelerated_remediation`, `publicly exposed`, `mission critical` |
 | Q-13 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `defer` |
 | Q-14 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `request_investigation` |
-| Q-15 | `detect_material_changes` | `no material changes`, `no re-review required` |
+| Q-15 | `detect_material_changes` (identical snapshots) | `no material changes`, `no re-review required` |
 
 ### Judges
 
@@ -274,7 +274,20 @@ specific. If the rationale is the only place a key fact appears, make sure
 it names that fact explicitly. The rationale is not internal state — it
 surfaces directly to the analyst and to any evaluation judge.
 
-### L-5 — Multi-step tool calls require a shared server process
+### L-5 — Prose snapshot descriptions cause agent tool-call failures
+
+Q-15 asked the agent to detect material changes between two "identical"
+snapshots described in natural language. `gpt-4o-mini` could not reliably
+construct valid `EvidenceSnapshot` JSON objects from prose, resulting in
+invalid tool calls, service errors, and the agent misreporting "material
+changes detected."
+
+**Recommendation:** When a question requires explicit structured inputs
+(e.g. snapshot objects with required fields), embed the JSON directly in
+the question rather than describing it in prose. This eliminates a class
+of agent failures that are unrelated to the capability being tested.
+
+### L-6 — Multi-step tool calls require a shared server process
 
 Questions Q-08, Q-09, Q-13, and Q-14 require `assess_finding` followed by
 `record_analyst_decision` for the same finding. The `record_analyst_decision`
@@ -352,4 +365,5 @@ eval/
 | `JUDGE_MODEL` | `llama3.1:8b` | Correctness judge model. Same prefix rule. |
 | `OPENAI_API_KEY` | — | Required only for `openai:` prefixed models. |
 | `PHOENIX_HOST` | `http://localhost:6006` | Phoenix base URL. |
+| `PHOENIX_API_KEY` | — | Bearer token for authenticated Phoenix instances. Set when Phoenix returns 401 errors on span export or span queries. |
 | `OLLAMA_BASE_URL` | `http://localhost:11434/v1` | Ollama OpenAI-compat endpoint. |
