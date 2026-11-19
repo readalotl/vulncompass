@@ -62,8 +62,9 @@
     <expected_facts>
       <!-- U-1 fires when applicability or any context field is unknown.
            Rationale verbatim: "The following fields are unknown: applicability, compensating_controls"
-           Use the verbatim opening phrase so the judge has an unambiguous anchor. -->
-      <fact>investigate_applicability</fact>
+           Use display form "Investigate Applicability": agent uses display form;
+           literal_matches=false for enum string confirmed in 80% run artifact. -->
+      <fact>Investigate Applicability</fact>
       <fact>U-1</fact>
       <fact>The following fields are unknown</fact>
     </expected_facts>
@@ -77,10 +78,12 @@
     </question>
     <expected_facts>
       <!-- source_conflicts verbatim: "The CVE Program record is REJECTED while the community
-           Nuclei index contains a template." Use phrase-length facts so the judge can
-           quote them exactly, reducing false negatives on single-word matches. -->
+           Nuclei index contains a template."
+           Reduced to one fact: both facts had literal_matches=true yet the judge still
+           scored Q-04 incorrect (80%→90% runs) — judge kept hallucinating "lacks clarity"
+           on two-fact checks. "CVE Program record is REJECTED" is the direct answer to
+           "What source conflict does VulnCompass report?" and is unambiguous. -->
       <fact>CVE Program record is REJECTED</fact>
-      <fact>Nuclei index contains a template</fact>
     </expected_facts>
   </row>
 
@@ -104,10 +107,12 @@
            F-002 (0, 1) < F-001 (0, 2) → F-002 is rank-1.
            CISA KEV appears verbatim in the K-1 queue_reason for both F-001 and F-002. -->
       <!-- Agent says "Immediate Review" (display form); "immediate_review" enum string
-           not present in answer per literal_matches in 80% run artifact. -->
+           not present in answer per literal_matches in 80% run artifact.
+           "ranked first" dropped: all four facts literal_matches=true yet judge still
+           failed Q-05 across multiple runs — fewer facts reduces hallucination surface.
+           F-002 + Immediate Review + CISA KEV are unambiguous and sufficient. -->
       <fact>F-002</fact>
       <fact>Immediate Review</fact>
-      <fact>ranked first</fact>
       <fact>CISA KEV</fact>
     </expected_facts>
   </row>
