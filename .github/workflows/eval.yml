@@ -52,6 +52,20 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --group eval
 
+      - name: Check saved evaluation cases
+        run: |
+          uv run --group eval python -m eval.phoenix.check_saved_cases \
+            eval/phoenix/fixtures/saved-failures.json \
+            | tee saved-case-results.txt
+
+      - name: Upload saved-case results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: saved-case-results
+          path: saved-case-results.txt
+          if-no-files-found: warn
+
       - name: Wait for Phoenix
         run: |
           for i in $(seq 1 30); do
