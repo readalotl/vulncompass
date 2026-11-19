@@ -261,6 +261,10 @@ def main(argv: list[str] | None = None) -> None:
                     "answer": answers[i],
                     "judge_label": result.get("label"),
                     "judge_explanation": result.get("explanation"),
+                    "literal_matches": {
+                        fact: fact.casefold() in answers[i].casefold()
+                        for fact in expected_facts[i]
+                    },
                     "trace_id": trace_ids[i],
                 }
             )

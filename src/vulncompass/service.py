@@ -118,7 +118,12 @@ async def prioritize_findings_service(
                 "vulncompass_recommendation": assessment.vulncompass_recommendation,
                 "agreement": assessment.agreement,
                 "policy_rules": assessment.policy_rules,
-                "queue_reason": assessment.rationale[0],
+                "queue_reason": (
+                    f"{assessment.rationale[0]} "
+                    "Findings are ordered by recommendation. Within the same "
+                    "recommendation, lower-confidence findings are ranked first; "
+                    "remaining ties are ordered by finding ID."
+                ),
                 "confidence": assessment.confidence,
                 "missing_information": assessment.missing_information,
                 "review_status": assessment.review_status,

@@ -301,3 +301,26 @@ async def test_kev_assessment_vendor_disagreement_is_explicit(tmp_path) -> None:
     assert result.comparison_explanation
     explanation = result.comparison_explanation.lower()
     assert "vendor" in explanation or "band" in explanation
+
+
+@pytest.mark.asyncio
+async def test_queue_explains_confidence_tiebreak(tmp_path) -> None:
+    repo = Repository(tmp_path / "test.db")
+
+    request = PrioritizeRequest(
+        findings=[
+            finding(finding_id="F-001"),
+            finding(
+                finding_id="F-002",
+                applicability="likely_affected",
+            ),
+        ]
+    )
+
+    result = await prioritize_findings_service(request, repo=repo)
+    ranked = result["ranked_findings"]
+
+    assert [item["finding_id"] for item in ranked] == ["F-002", "F-001"]
+    assert ranked[0]["confidence"].value == "moderate"
+    assert ranked[1]["confidence"].value == "high"
+    assert "lower-confidence findings are ranked first" in ranked[0]["queue_reason"]

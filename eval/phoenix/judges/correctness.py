@@ -15,21 +15,29 @@ import pandas as pd
 from phoenix.evals import ClassificationEvaluator, LLM, evaluate_dataframe
 
 CORRECTNESS_TEMPLATE = """\
-You are evaluating whether an AI assistant's answer correctly addresses a
+You are evaluating whether an assistant's answer correctly addresses a
 vulnerability management question.
 
-Question asked to the assistant:
+Question:
 {question}
 
-Expected facts that must appear in a correct answer
-(ALL of these must be present for a score of 1):
+Expected facts:
 {expected_facts}
 
-Actual assistant answer:
+Assistant answer:
 {answer}
 
-Does the answer contain ALL of the expected facts?
-Classify the answer as "correct" if ALL facts are present, or "incorrect" otherwise.
+Evaluate each expected fact separately.
+
+For each fact, explain whether it is supported by the answer and quote the
+specific words that support your decision. If it is missing, say so.
+
+Treat equivalent wording as a match. For example, "Immediate Review" can
+express "immediate_review". Check the surrounding context: a phrase that is
+negated or contradicted does not establish the fact.
+
+Classify the answer as "correct" only if every expected fact is supported.
+Otherwise classify it as "incorrect".
 """
 
 # Default: llama3.1:8b via Ollama OpenAI-compat endpoint (no API key needed).
