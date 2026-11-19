@@ -67,7 +67,13 @@ def review_fact(
         }
 
     quote = verdict.evidence_quote.strip()
-    quote_is_valid = bool(quote) and quote in answer
+    # Accept the quote if it appears in the answer case-insensitively.
+    # Exact case matching was rejecting valid quotes like "the priority bands
+    # differ between the vendor and VulnCompass" when the fact was written
+    # with a capital T — the meaning is identical.
+    quote_in_answer_exact = bool(quote) and quote in answer
+    quote_in_answer_ci = bool(quote) and quote.casefold() in answer.casefold()
+    quote_is_valid = quote_in_answer_ci  # ci match is sufficient for status
 
     if verdict.supported and quote_is_valid:
         status: Literal["supported", "unsupported", "needs_review"] = "supported"
@@ -80,7 +86,8 @@ def review_fact(
         "fact": fact,
         "status": status,
         "evidence_quote": quote,
-        "quote_is_exact": quote_is_valid,
+        "quote_is_exact": quote_in_answer_exact,
+        "quote_matches_ci": quote_in_answer_ci,
         "explanation": verdict.explanation,
         "literal_fact_in_answer": fact.casefold() in answer.casefold(),
     }

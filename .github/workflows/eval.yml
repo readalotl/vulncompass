@@ -1,24 +1,28 @@
 name: Eval (correctness)
 
-# LLM-as-judge correctness is non-deterministic: a single run can flip
-# between 87% and 100% on identical code due to model temperature variance.
-# Running it as a hard gate on every push produces false failures.
+# Two-tier evaluation:
 #
-# Instead this workflow runs:
-#   - nightly at 02:00 UTC (catches regressions without blocking PRs)
-#   - on demand via workflow_dispatch (run before a release or after prompt changes)
+# Hard gate  — deterministic tool-result checks (--fail-below-tool-checks).
+#   Asserts structured fields from the MCP tool's JSON output: recommendation,
+#   confidence, policy_rules, kev.listed, rank, source_conflicts, review_status,
+#   action.  These never change unless the service logic changes.
 #
-# It is intentionally NOT triggered on push or pull_request.
-# Scope correctness (deterministic tool-call check) remains a hard gate in ci.yml.
+# Informational — LLM-as-judge correctness score.
+#   Checks whether the agent's prose faithfully represents the tool result.
+#   Non-deterministic; shown in the summary but does NOT gate the workflow.
+#   The score is preserved in the phoenix-failed-cases artifact for review.
+#
+# Runs nightly and on workflow_dispatch. Not triggered on push/pull_request.
+# Scope (deterministic tool-call check) remains a hard gate in ci.yml.
 
 on:
   schedule:
     - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
-      fail_below:
-        description: "Fail if correctness is below this rate (0.0–1.0)"
-        default: "0.9"
+      fail_below_tool_checks:
+        description: "Fail if deterministic tool-check pass rate is below this (0.0–1.0)"
+        default: "1.0"
         required: false
 
 jobs:
@@ -27,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      FAIL_BELOW: ${{ inputs.fail_below || '0.9' }}
+      FAIL_BELOW_TOOL_CHECKS: ${{ inputs.fail_below_tool_checks || '1.0' }}
 
     services:
       phoenix:
@@ -80,7 +84,7 @@ jobs:
             --model openai:gpt-4o-mini \
             --judge-model openai:gpt-4o-mini \
             --fail-below-scope 1.0 \
-            --fail-below-correctness "$FAIL_BELOW"
+            --fail-below-tool-checks "$FAIL_BELOW_TOOL_CHECKS"
         env:
           PHOENIX_HOST: http://localhost:6006
 

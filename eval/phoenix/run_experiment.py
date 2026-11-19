@@ -138,10 +138,26 @@ def main(argv: list[str] | None = None) -> None:
         default=None,
         metavar="RATE",
         help=(
-            "Exit 1 if the correctness pass rate is strictly below RATE (0.0–1.0). "
-            "Ignored when --skip-correctness-judge is set. "
-            "Example: --fail-below-correctness 0.8 fails if fewer than 80%% are correct."
+            "Exit 1 if the LLM correctness pass rate is strictly below RATE (0.0–1.0). "
+            "Informational by default; use --fail-below-tool-checks for a hard gate. "
+            "Ignored when --skip-correctness-judge is set."
         ),
+    )
+    parser.add_argument(
+        "--fail-below-tool-checks",
+        type=float,
+        default=None,
+        metavar="RATE",
+        help=(
+            "Exit 1 if the deterministic tool-result check pass rate is strictly "
+            "below RATE (0.0–1.0). Example: --fail-below-tool-checks 1.0 fails "
+            "unless every tool returned the expected structured fields."
+        ),
+    )
+    parser.add_argument(
+        "--skip-tool-checks",
+        action="store_true",
+        help="Skip the deterministic tool-result checks (useful when Phoenix is unavailable).",
     )
     args = parser.parse_args(argv)
 
@@ -177,11 +193,24 @@ def main(argv: list[str] | None = None) -> None:
 
     q_col = entry["input_column"]
     facts_col = entry["expected_facts_column"]
+    checks_col = entry.get("expected_tool_checks_column")
     questions: list[str] = df[q_col].tolist()
     raw_facts: list[str] = df[facts_col].tolist()
     expected_facts: list[list[str]] = [
         [f.strip() for f in str(rf).split("|")] for rf in raw_facts
     ]
+    # Load per-row structured tool checks if the column exists in both the
+    # YAML registry and the CSV.
+    expected_tool_checks: list[dict] = []
+    if checks_col and checks_col in df.columns:
+        for raw in df[checks_col].tolist():
+            try:
+                val = json.loads(str(raw)) if str(raw).strip() not in ("", "nan") else {}
+                expected_tool_checks.append(val if isinstance(val, dict) else {})
+            except (json.JSONDecodeError, TypeError):
+                expected_tool_checks.append({})
+    else:
+        expected_tool_checks = [{} for _ in questions]
 
     print(f"Dataset: {len(questions)} questions")
     print(f"Agent model:  {args.model}")
@@ -236,7 +265,23 @@ def main(argv: list[str] | None = None) -> None:
         project_name="vulncompass-eval",
     )
 
-    # ── Correctness judge (LLM-as-judge) ────────────────────────────────────
+    # ── Tool-result judge (deterministic, no LLM) ────────────────────────────
+    if not args.skip_tool_checks:
+        print("\nRunning deterministic tool-result checks…")
+        from eval.phoenix.judges.tool_result import run_tool_checks
+        tool_check_results = run_tool_checks(
+            expected_tool_checks,
+            trace_ids,
+            phoenix_host=args.phoenix_host,
+            project_name="vulncompass-eval",
+        )
+    else:
+        print("\nSkipping tool-result checks (--skip-tool-checks).")
+        tool_check_results = [
+            {"score": None, "checks": [], "explanation": "skipped"}
+        ] * len(answers)
+
+    # ── Correctness judge (LLM-as-judge, informational) ──────────────────────
     if not args.skip_correctness_judge:
         print(f"\nRunning correctness judge ({args.judge_model})…")
         from eval.phoenix.judges.correctness import run_correctness
@@ -275,35 +320,68 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     # ── Print results table ──────────────────────────────────────────────────
-    print("\n" + "=" * 72)
-    print(f"{'ID':<8} {'Scope':>6} {'Correct':>8}  Answer (first 80 chars)")
-    print("-" * 72)
+    print("\n" + "=" * 80)
+    print(f"{'ID':<8} {'Scope':>6} {'ToolChk':>8} {'LLM':>5}  Answer (first 60 chars)")
+    print("-" * 80)
     scope_scores = []
+    tool_check_scores = []
     correctness_scores = []
-    for i, (a, sr, cr) in enumerate(zip(answers, scope_results, correctness_results)):
+    for i, (a, sr, tr, cr) in enumerate(
+        zip(answers, scope_results, tool_check_results, correctness_results)
+    ):
         row_id = df["id"].iloc[i] if "id" in df.columns else str(i + 1)
         scope_label = "PASS" if sr["score"] == 1 else "FAIL"
+        tc_label = {1: "PASS", 0: "FAIL", -1: " N/A", None: "SKIP"}.get(tr["score"], "FAIL")
         corr_label = {1: "PASS", 0: "FAIL", None: " -- "}.get(cr["score"], "FAIL")
-        print(f"{row_id!s:<8} {scope_label:>6}  {corr_label:>8}  {a[:80].strip()!r}")
+        print(
+            f"{row_id!s:<8} {scope_label:>6}  {tc_label:>7} {corr_label:>5}  "
+            f"{a[:60].strip()!r}"
+        )
         scope_scores.append(sr["score"] or 0)
+        if tr["score"] is not None and tr["score"] != -1:
+            tool_check_scores.append(tr["score"])
         if cr["score"] is not None:
             correctness_scores.append(cr["score"])
 
-    print("=" * 72)
+    print("=" * 80)
     n = len(scope_scores)
     scope_mean = sum(scope_scores) / n if n else 0.0
+    tc_mean = sum(tool_check_scores) / len(tool_check_scores) if tool_check_scores else None
     corr_mean = sum(correctness_scores) / len(correctness_scores) if correctness_scores else None
-    print(f"\nScope (tool called):     {scope_mean:.0%}  ({sum(scope_scores)}/{n})")
+    print(f"\nScope (tool called):              {scope_mean:.0%}  ({sum(scope_scores)}/{n})")
+    if tc_mean is not None:
+        print(
+            f"Tool-result checks (deterministic): {tc_mean:.0%}"
+            f"  ({sum(tool_check_scores)}/{len(tool_check_scores)})"
+        )
     if corr_mean is not None:
-        print(f"Correctness (LLM judge): {corr_mean:.0%}  ({sum(correctness_scores)}/{len(correctness_scores)})")
+        print(
+            f"Correctness (LLM judge, info only): {corr_mean:.0%}"
+            f"  ({sum(correctness_scores)}/{len(correctness_scores)})"
+        )
     print(f"\nTraces logged to Phoenix project 'vulncompass-eval' at {args.phoenix_host}")
 
     # ── Threshold gates (exit 1 on regression) ───────────────────────────────
+    # Tool-result checks are deterministic and form the hard gate.
+    # LLM correctness is informational; --fail-below-correctness is kept for
+    # backward compatibility but should not be used as the primary gate.
     failed = False
     if args.fail_below_scope is not None and scope_mean < args.fail_below_scope:
         print(
             f"\nFAIL: scope pass rate {scope_mean:.0%} is below threshold "
             f"{args.fail_below_scope:.0%} (--fail-below-scope).",
+            file=sys.stderr,
+        )
+        failed = True
+    if (
+        args.fail_below_tool_checks is not None
+        and not args.skip_tool_checks
+        and tc_mean is not None
+        and tc_mean < args.fail_below_tool_checks
+    ):
+        print(
+            f"\nFAIL: tool-result check pass rate {tc_mean:.0%} is below threshold "
+            f"{args.fail_below_tool_checks:.0%} (--fail-below-tool-checks).",
             file=sys.stderr,
         )
         failed = True
@@ -314,7 +392,7 @@ def main(argv: list[str] | None = None) -> None:
         and corr_mean < args.fail_below_correctness
     ):
         print(
-            f"\nFAIL: correctness pass rate {corr_mean:.0%} is below threshold "
+            f"\nFAIL: LLM correctness pass rate {corr_mean:.0%} is below threshold "
             f"{args.fail_below_correctness:.0%} (--fail-below-correctness).",
             file=sys.stderr,
         )

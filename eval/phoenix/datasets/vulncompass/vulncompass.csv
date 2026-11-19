@@ -1,18 +1,18 @@
-id,question,expected_facts
+id,question,expected_facts,expected_tool_checks
 Q-01,"Assess finding F-001 for CVE-2099-0001. The asset ASSET-001 was reported
 by synthetic-vendor (finding V-1001). It is confirmed affected, publicly
 exposed, mission-critical, and has no compensating controls. Vendor scored
-it High with a risk score of 742.",immediate_review | CISA KEV | K-1
+it High with a risk score of 742.",immediate_review | CISA KEV | K-1,"{""tool"": ""assess_finding"", ""recommendation"": ""immediate_review"", ""confidence"": ""high"", ""policy_rules"": [""K-1""], ""kev_listed"": true, ""review_status"": ""PENDING_REVIEW""}"
 Q-02,"Assess finding F-004 for CVE-2099-0002 on ASSET-004 (synthetic-vendor,
 finding V-1004). The asset is confirmed NOT affected, isolated network,
 low mission criticality, and compensating controls are present. The vendor
-scored it Critical with risk score 910.",Proposed Closure | confirmed not affected | high
+scored it Critical with risk score 910.",Proposed Closure | confirmed not affected | high,"{""tool"": ""assess_finding"", ""recommendation"": ""proposed_closure"", ""confidence"": ""high"", ""policy_rules"": [""A-4""], ""review_status"": ""PENDING_REVIEW""}"
 Q-03,"Assess finding F-007 for CVE-2099-0002 on ASSET-007 (synthetic-vendor,
 finding V-1007). Applicability is unknown, internet exposure is public,
-mission criticality is high. Vendor scored it High.",Investigate Applicability | U-1 | The following fields are unknown
+mission criticality is high. Vendor scored it High.",Investigate Applicability | U-1 | The following fields are unknown,"{""tool"": ""assess_finding"", ""recommendation"": ""investigate_applicability"", ""policy_rules"": [""U-1""]}"
 Q-04,"Assess finding F-008 for CVE-2099-0003 on ASSET-008 (synthetic-vendor,
 finding V-1008). All local context fields are unknown. Vendor scored it High.
-What source conflict does VulnCompass report?",CVE Program record is REJECTED
+What source conflict does VulnCompass report?",CVE Program record is REJECTED | Nuclei index contains a template,"{""tool"": ""assess_finding"", ""source_conflicts_contains"": ""REJECTED""}"
 Q-05,"Prioritize this CSV backlog and tell me the rank-1 finding and why it was
 placed first:
 
@@ -20,7 +20,7 @@ finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendo
 F-001,synthetic-vendor,V-1001,CVE-2099-0001,ASSET-001,High,742,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
 F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-10-30T12:00:00Z,likely_affected,internal,moderate,unknown
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
-F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | Immediate Review | CISA KEV
+F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent",F-002 | Immediate Review | ranked first | CISA KEV,"{""tool"": ""prioritize_findings"", ""rank1_finding_id"": ""F-002"", ""rank1_recommendation"": ""immediate_review"", ""rank1_confidence"": ""moderate""}"
 Q-06,"Prioritize this backlog and tell me where F-004 ranks and what recommendation VulnCompass gives it:
 
 finding_id,source_vendor,source_finding_id,cve_id,asset_id,vendor_severity,vendor_risk_score,vendor_priority,vendor_evidence_timestamp,applicability,internet_exposure,mission_criticality,compensating_controls
@@ -29,7 +29,7 @@ F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-1
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
 F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
 
-The vendor scored F-004 as Critical with the highest risk score (910). What does VulnCompass recommend for it?",proposed_closure | confirmed not affected
+The vendor scored F-004 as Critical with the highest risk score (910). What does VulnCompass recommend for it?",proposed_closure | confirmed not affected,"{""tool"": ""assess_finding"", ""recommendation"": ""proposed_closure"", ""policy_rules"": [""A-4""]}"
 Q-07,"Detect material changes for CVE-2099-0002 between these two snapshots.
 
 Previous snapshot (2026-11-01): KEV listed=false, CVSS vector
@@ -41,44 +41,44 @@ Current snapshot (2026-11-06): KEV listed=true (added 2026-11-05, due
 CVSS vector CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H, configurations
 affected versions 2.x and 3.x, vulnrichment SSVC Exploitation=active.
 
-Does this require analyst re-review?",material_change_detected | requires_analyst_rereview
+Does this require analyst re-review?",material_change_detected | requires_analyst_rereview,"{""tool"": ""detect_material_changes"", ""material_change_detected"": true, ""requires_analyst_rereview"": true}"
 Q-08,"First assess finding F-005 for CVE-2099-0002 on ASSET-005 (synthetic-vendor,
 V-1005, confirmed affected, public exposure, high mission criticality, no
 compensating controls, vendor severity High). Then record an analyst decision
 to approve that recommendation. The analyst is ""analyst-demo"" and their
 rationale is: asset is confirmed affected, publicly exposed, and
-mission-critical with no controls — accelerated remediation warranted.",DECIDED | approve | accelerated_remediation
+mission-critical with no controls — accelerated remediation warranted.",DECIDED | approve | accelerated_remediation,"{""tool"": ""record_analyst_decision"", ""review_status"": ""DECIDED"", ""action"": ""approve""}"
 Q-09,"First assess finding F-006 for CVE-2099-0002 on ASSET-006 (synthetic-vendor,
 V-1006, confirmed affected, internal exposure, moderate mission criticality,
 compensating controls present, vendor severity Medium). Then record a modify
 decision: the analyst wants to change the recommendation to
 routine_remediation because compensating controls are already deployed.
-Analyst ID is ""analyst-demo"".",DECIDED | modify | Routine Remediation
+Analyst ID is ""analyst-demo"".",DECIDED | modify | Routine Remediation,"{""tool"": ""record_analyst_decision"", ""review_status"": ""DECIDED"", ""action"": ""modify"", ""modified_recommendation"": ""routine_remediation""}"
 Q-10,"Try to record an analyst decision to approve finding F-NONEXISTENT without
-first assessing it. What happens?",Assess the finding before recording an analyst decision | error | F-NONEXISTENT
+first assessing it. What happens?",Assess the finding before recording an analyst decision | error | F-NONEXISTENT,{}
 Q-11,"Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor,
 finding V-1009). The asset is confirmed NOT affected, isolated network, low
 mission criticality, compensating controls present. The vendor scored it
-Critical with risk score 950. Does VulnCompass agree with the vendor priority?",Proposed Closure | The priority bands differ | does not establish that the vendor is wrong
+Critical with risk score 950. Does VulnCompass agree with the vendor priority?",Proposed Closure | The priority bands differ | does not establish that the vendor is wrong,"{""tool"": ""assess_finding"", ""recommendation"": ""proposed_closure"", ""policy_rules"": [""A-4""]}"
 Q-12,"Assess finding F-010 for CVE-2099-0002 on ASSET-010 (synthetic-vendor,
 finding V-1010). The asset is confirmed affected, publicly exposed, mission
 criticality is high, no compensating controls. Vendor scored it Medium.
-What recommendation does VulnCompass give?",accelerated_remediation | publicly exposed | mission critical
+What recommendation does VulnCompass give?",accelerated_remediation | publicly exposed | mission critical,"{""tool"": ""assess_finding"", ""recommendation"": ""accelerated_remediation"", ""confidence"": ""high"", ""policy_rules"": [""L-1""]}"
 Q-13,"First assess finding F-011 for CVE-2099-0001 on ASSET-011 (synthetic-vendor,
 V-1011, confirmed affected, internal exposure, moderate mission criticality,
 compensating controls present, vendor severity Low). Then record a defer
 decision for analyst ""analyst-demo"" with rationale: patching window opens
-next quarter — deferring until 2027-Q1.",DECIDED | action is defer
+next quarter — deferring until 2027-Q1.",DECIDED | action is defer,"{""tool"": ""record_analyst_decision"", ""review_status"": ""DECIDED"", ""action"": ""defer""}"
 Q-14,"First assess finding F-012 for CVE-2099-0002 on ASSET-012 (synthetic-vendor,
 V-1012, applicability unknown, public exposure, high mission criticality,
 no compensating controls, vendor severity High). Then record a
 request_investigation decision for analyst ""analyst-demo"" with rationale:
 asset ownership unclear — routing to infrastructure team for applicability
-confirmation.",DECIDED | request_investigation
+confirmation.",DECIDED | request_investigation,"{""tool"": ""record_analyst_decision"", ""review_status"": ""DECIDED"", ""action"": ""request_investigation""}"
 Q-15,"Detect material changes for CVE-2099-0001. Use these two explicit snapshots.
 
 Previous snapshot: {""cve_id"": ""CVE-2099-0001"", ""mode"": ""fixture"", ""retrieved_at"": ""2026-11-01T00:00:00Z"", ""kev"": {""listed"": true}, ""nvd"": {""cvss"": {""vector"": ""CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H""}}}
 
 Current snapshot: {""cve_id"": ""CVE-2099-0001"", ""mode"": ""fixture"", ""retrieved_at"": ""2026-11-02T00:00:00Z"", ""kev"": {""listed"": true}, ""nvd"": {""cvss"": {""vector"": ""CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H""}}}
 
-The snapshots are identical. Does this require analyst re-review?",no material changes | no re-review required
+The snapshots are identical. Does this require analyst re-review?",no material changes | no re-review required,"{""tool"": ""detect_material_changes"", ""material_change_detected"": false, ""requires_analyst_rereview"": false}"
