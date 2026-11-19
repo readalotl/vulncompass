@@ -27,28 +27,32 @@ Expected facts:
 Assistant answer:
 {answer}
 
-Evaluate each expected fact separately.
+Step 1 — For each expected fact, output exactly one line in this format:
+  FACT "<fact text>" → SUPPORTED: "<exact quote from the answer>"
+  or
+  FACT "<fact text>" → MISSING: "<brief reason>"
 
-For each fact, explain whether it is supported by the answer and quote the
-specific words that support your decision. If it is missing, say so.
+Rules for Step 1:
+- A fact is SUPPORTED if the answer contains it, its display-form equivalent,
+  or its clear paraphrase. Quote the words that support it.
+- Equivalent wording counts as a match:
+  "Immediate Review" = "immediate_review"
+  "Accelerated Remediation" = "accelerated_remediation"
+  "Routine Remediation" = "routine_remediation"
+  "Proposed Closure" = "proposed_closure"
+  "Investigate Applicability" = "investigate_applicability"
+  "High" / "high" / "high confidence" all express the same confidence level.
+  "ranked first" is satisfied by "rank-1", "rank 1", or "ranked first".
+  "action is defer" is satisfied when the answer states the action is defer.
+- A fact that is a phrase is SUPPORTED if that phrase or a clear equivalent
+  appears anywhere in the answer.
+- A phrase that is negated or contradicted is NOT supported.
+- Do not add requirements that are not listed in the expected facts.
+  Evaluate only the facts given, nothing more.
 
-Treat equivalent wording as a match. Examples:
-- "Immediate Review" and "immediate_review" are the same.
-- "Accelerated Remediation" and "accelerated_remediation" are the same.
-- "Routine Remediation" and "routine_remediation" are the same.
-- "Proposed Closure" and "proposed_closure" are the same.
-- "Investigate Applicability" and "investigate_applicability" are the same.
-- "High", "high", and "high confidence" all express the same confidence level.
-- "ranked first" is satisfied by "rank-1", "rank 1", "first", or "ranked first".
-- "action is defer" is satisfied when the answer states the action is defer.
-- A fact that is a phrase (e.g. "CVE Program record is REJECTED") is supported
-  if that phrase or its clear equivalent appears in the answer.
-
-Check the surrounding context: a phrase that is negated or contradicted does
-not establish the fact.
-
-Classify the answer as "correct" only if every expected fact is supported.
-Otherwise classify it as "incorrect".
+Step 2 — After listing every fact verdict, output your final classification:
+  If every fact is SUPPORTED → output "correct"
+  If any fact is MISSING → output "incorrect"
 """
 
 # Default: llama3.1:8b via Ollama OpenAI-compat endpoint (no API key needed).
