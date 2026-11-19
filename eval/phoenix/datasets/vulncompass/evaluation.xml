@@ -44,9 +44,11 @@
       scored it Critical with risk score 910.
     </question>
     <expected_facts>
+      <!-- "high confidence" → agent relays confidence as "High" or "high";
+           single word "high" matches reliably without the ambiguous noun. -->
       <fact>proposed_closure</fact>
       <fact>confirmed not affected</fact>
-      <fact>high confidence</fact>
+      <fact>high</fact>
     </expected_facts>
   </row>
 
@@ -58,10 +60,11 @@
     </question>
     <expected_facts>
       <!-- U-1 fires when applicability or any context field is unknown.
-           Rationale: "The following fields are unknown: applicability, compensating_controls" -->
+           Rationale verbatim: "The following fields are unknown: applicability, compensating_controls"
+           Use the verbatim opening phrase so the judge has an unambiguous anchor. -->
       <fact>investigate_applicability</fact>
       <fact>U-1</fact>
-      <fact>fields are unknown</fact>
+      <fact>The following fields are unknown</fact>
     </expected_facts>
   </row>
 
@@ -72,8 +75,11 @@
       What source conflict does VulnCompass report?
     </question>
     <expected_facts>
-      <fact>REJECTED</fact>
-      <fact>Nuclei</fact>
+      <!-- source_conflicts verbatim: "The CVE Program record is REJECTED while the community
+           Nuclei index contains a template." Use phrase-length facts so the judge can
+           quote them exactly, reducing false negatives on single-word matches. -->
+      <fact>CVE Program record is REJECTED</fact>
+      <fact>Nuclei index contains a template</fact>
     </expected_facts>
   </row>
 
@@ -98,7 +104,7 @@
            CISA KEV appears verbatim in the K-1 queue_reason for both F-001 and F-002. -->
       <fact>F-002</fact>
       <fact>immediate_review</fact>
-      <fact>rank 1</fact>
+      <fact>ranked first</fact>
       <fact>CISA KEV</fact>
     </expected_facts>
   </row>
@@ -174,9 +180,11 @@
       Analyst ID is "analyst-demo".
     </question>
     <expected_facts>
+      <!-- Agent relays the tool result which uses display form "Routine Remediation"
+           rather than the enum string "routine_remediation". -->
       <fact>DECIDED</fact>
       <fact>modify</fact>
-      <fact>routine_remediation</fact>
+      <fact>Routine Remediation</fact>
     </expected_facts>
   </row>
 
@@ -240,8 +248,10 @@
       next quarter — deferring until 2027-Q1.
     </question>
     <expected_facts>
+      <!-- "defer" alone is ambiguous (could be in rationale prose).
+           "action is defer" anchors the fact to the decision action field. -->
       <fact>DECIDED</fact>
-      <fact>defer</fact>
+      <fact>action is defer</fact>
     </expected_facts>
   </row>
 

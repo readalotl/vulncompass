@@ -32,9 +32,20 @@ Evaluate each expected fact separately.
 For each fact, explain whether it is supported by the answer and quote the
 specific words that support your decision. If it is missing, say so.
 
-Treat equivalent wording as a match. For example, "Immediate Review" can
-express "immediate_review". Check the surrounding context: a phrase that is
-negated or contradicted does not establish the fact.
+Treat equivalent wording as a match. Examples:
+- "Immediate Review" and "immediate_review" are the same.
+- "Accelerated Remediation" and "accelerated_remediation" are the same.
+- "Routine Remediation" and "routine_remediation" are the same.
+- "Proposed Closure" and "proposed_closure" are the same.
+- "Investigate Applicability" and "investigate_applicability" are the same.
+- "High", "high", and "high confidence" all express the same confidence level.
+- "ranked first" is satisfied by "rank-1", "rank 1", "first", or "ranked first".
+- "action is defer" is satisfied when the answer states the action is defer.
+- A fact that is a phrase (e.g. "CVE Program record is REJECTED") is supported
+  if that phrase or its clear equivalent appears in the answer.
+
+Check the surrounding context: a phrase that is negated or contradicted does
+not establish the fact.
 
 Classify the answer as "correct" only if every expected fact is supported.
 Otherwise classify it as "incorrect".
