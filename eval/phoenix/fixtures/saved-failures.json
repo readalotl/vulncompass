@@ -3,9 +3,9 @@
     "id": "Q-11",
     "question": "Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor, finding V-1009). The asset is confirmed NOT affected, isolated network, low mission criticality, compensating controls present. The vendor scored it Critical with risk score 950. Does VulnCompass agree with the vendor priority?",
     "expected_facts": [
-      "proposed_closure",
-      "comparison_explanation",
-      "priority bands differ"
+      "Proposed Closure",
+      "The priority bands differ",
+      "does not establish that the vendor is wrong"
     ],
     "answer": "VulnCompass recommends **Proposed Closure** for finding F-009. The vendor scored this Critical, but because the asset is confirmed not affected, VulnCompass applies rule A-4 and proposes closure. The priority bands differ between the vendor and VulnCompass; this does not establish that the vendor is wrong.",
     "judge_label": "incorrect",

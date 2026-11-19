@@ -44,9 +44,10 @@
       scored it Critical with risk score 910.
     </question>
     <expected_facts>
-      <!-- "high confidence" → agent relays confidence as "High" or "high";
-           single word "high" matches reliably without the ambiguous noun. -->
-      <fact>proposed_closure</fact>
+      <!-- Agent says "Proposed Closure" (display form); enum string "proposed_closure"
+           is not in the agent answer, confirmed by literal_matches in 80% run artifact.
+           "high confidence" → agent relays as "High"; single word "high" is sufficient. -->
+      <fact>Proposed Closure</fact>
       <fact>confirmed not affected</fact>
       <fact>high</fact>
     </expected_facts>
@@ -102,8 +103,10 @@
            Confidence secondary key is ascending (LOW=0 sorts first to surface uncertain findings).
            F-002 (0, 1) < F-001 (0, 2) → F-002 is rank-1.
            CISA KEV appears verbatim in the K-1 queue_reason for both F-001 and F-002. -->
+      <!-- Agent says "Immediate Review" (display form); "immediate_review" enum string
+           not present in answer per literal_matches in 80% run artifact. -->
       <fact>F-002</fact>
-      <fact>immediate_review</fact>
+      <fact>Immediate Review</fact>
       <fact>ranked first</fact>
       <fact>CISA KEV</fact>
     </expected_facts>
@@ -215,11 +218,14 @@
     <expected_facts>
       <!-- Rule A-4: confirmed_not_affected → proposed_closure.
            Vendor=Critical (level 0) vs VulnCompass=proposed_closure (level 3)
-           → agreement=false → comparison_explanation conveys that the bands
-           differ but that the difference does not establish the vendor is wrong. -->
-      <fact>proposed_closure</fact>
-      <fact>vendor and VulnCompass priority bands differ</fact>
-      <fact>the difference does not establish that the vendor is wrong</fact>
+           → agreement=false. comparison_explanation verbatim: "The priority bands
+           differ because VulnCompass applies the listed public evidence and local
+           policy rules; this does not establish that the vendor is wrong."
+           Facts use substrings of that verbatim string, confirmed present by
+           fact_audit quote_is_exact=true in 80% run saved-case results. -->
+      <fact>Proposed Closure</fact>
+      <fact>The priority bands differ</fact>
+      <fact>does not establish that the vendor is wrong</fact>
     </expected_facts>
   </row>
 

@@ -15,9 +15,9 @@ cases = json.loads(path.read_text(encoding="utf-8"))
 for case in cases:
     if case["id"] == "Q-11":
         case["expected_facts"] = [
-            "proposed_closure",
-            "vendor and VulnCompass priority bands differ",
-            "the difference does not establish that the vendor is wrong",
+            "Proposed Closure",
+            "The priority bands differ",
+            "does not establish that the vendor is wrong",
         ]
 
 negative_cases = [
