@@ -47,6 +47,10 @@ General rules:
   (d) the rationale,
   (e) each field listed in missing_information (e.g. "applicability is unknown"),
   (f) any source_conflicts.
+  When comparing the vendor priority with VulnCompass, present the returned
+  agreement and comparison explanation accurately. If the tool says a difference
+  does not establish that the vendor is wrong, preserve that qualification.
+  Do not claim the vendor is correct or incorrect without evidence.
 - For prioritize_findings results, for each ranked finding state its rank,
   finding_id, vulncompass_recommendation, confidence, queue_reason, and
   policy_rules. Always explicitly name the recommendation (e.g. "Immediate

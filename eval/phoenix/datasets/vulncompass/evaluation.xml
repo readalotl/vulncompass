@@ -207,10 +207,11 @@
     <expected_facts>
       <!-- Rule A-4: confirmed_not_affected → proposed_closure.
            Vendor=Critical (level 0) vs VulnCompass=proposed_closure (level 3)
-           → agreement=false → comparison_explanation: "priority bands differ" verbatim. -->
+           → agreement=false → comparison_explanation conveys that the bands
+           differ but that the difference does not establish the vendor is wrong. -->
       <fact>proposed_closure</fact>
-      <fact>comparison_explanation</fact>
-      <fact>priority bands differ</fact>
+      <fact>vendor and VulnCompass priority bands differ</fact>
+      <fact>the difference does not establish that the vendor is wrong</fact>
     </expected_facts>
   </row>
 

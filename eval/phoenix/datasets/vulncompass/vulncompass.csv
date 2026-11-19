@@ -59,7 +59,7 @@ first assessing it. What happens?",Assess the finding before recording an analys
 Q-11,"Assess finding F-009 for CVE-2099-0002 on ASSET-009 (synthetic-vendor,
 finding V-1009). The asset is confirmed NOT affected, isolated network, low
 mission criticality, compensating controls present. The vendor scored it
-Critical with risk score 950. Does VulnCompass agree with the vendor priority?",proposed_closure | comparison_explanation | priority bands differ
+Critical with risk score 950. Does VulnCompass agree with the vendor priority?",proposed_closure | vendor and VulnCompass priority bands differ | the difference does not establish that the vendor is wrong
 Q-12,"Assess finding F-010 for CVE-2099-0002 on ASSET-010 (synthetic-vendor,
 finding V-1010). The asset is confirmed affected, publicly exposed, mission
 criticality is high, no compensating controls. Vendor scored it Medium.
