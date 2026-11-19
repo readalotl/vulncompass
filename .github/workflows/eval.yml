@@ -69,3 +69,11 @@ jobs:
             --fail-below-correctness "$FAIL_BELOW"
         env:
           PHOENIX_HOST: http://localhost:6006
+
+      - name: Upload failed evaluation cases
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: phoenix-failed-cases
+          path: eval-failures.json
+          if-no-files-found: warn

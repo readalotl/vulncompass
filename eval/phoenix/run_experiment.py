@@ -41,6 +41,7 @@ if str(_REPO_ROOT) not in sys.path:
 # ─────────────────────────────────────────────────────────────────────────────
 
 import argparse
+import json
 import os
 import time
 
@@ -247,6 +248,27 @@ def main(argv: list[str] | None = None) -> None:
         correctness_results = [
             {"score": None, "label": "skipped", "explanation": ""}
         ] * len(answers)
+
+    # Save enough detail to investigate failed correctness cases.
+    failed_cases = []
+    for i, result in enumerate(correctness_results):
+        if result.get("score") == 0:
+            failed_cases.append(
+                {
+                    "id": str(df["id"].iloc[i]),
+                    "question": questions[i],
+                    "expected_facts": expected_facts[i],
+                    "answer": answers[i],
+                    "judge_label": result.get("label"),
+                    "judge_explanation": result.get("explanation"),
+                    "trace_id": trace_ids[i],
+                }
+            )
+
+    Path("eval-failures.json").write_text(
+        json.dumps(failed_cases, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     # ── Print results table ──────────────────────────────────────────────────
     print("\n" + "=" * 72)
