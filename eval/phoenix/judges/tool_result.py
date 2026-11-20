@@ -272,9 +272,9 @@ def run_tool_checks(
     for checks, trace_id in zip(expected_tool_checks, trace_ids):
         if not checks:
             results.append({
-                "score": 1,
+                "score": -1,
                 "checks": [],
-                "explanation": "No tool checks defined for this row.",
+                "explanation": "No tool checks defined for this row (excluded from pass-rate).",
             })
             continue
 

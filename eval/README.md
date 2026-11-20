@@ -71,7 +71,7 @@ The CSV has two judge-input columns:
 | **Scope** | Did the agent call a VulnCompass tool (vs. answering from memory)? Reads Phoenix spans — no LLM needed. | Yes | Hard gate on every push (`ci.yml`) |
 | **Tool-result** | Do the structured fields in the MCP tool's JSON response match the `expected_tool_checks` column? Reads Phoenix spans — no LLM needed. | Yes | Hard gate in `eval.yml` (`--fail-below-tool-checks 1.0`) |
 | **Correctness** | Does the agent's prose answer contain all expected facts? LLM-as-judge (`gpt-4o-mini`, 3-vote majority + literal-match pre-check). | No — varies ±10% run-to-run | **Informational only** in `eval.yml` |
-| **watsonx.ai second judge** | Same correctness prompt on a second model (IBM Granite). Disagreements with the primary judge are flagged in `eval-failures.json`. | No | Informational; skipped if `WATSONX_API_KEY` / `WATSONX_PROJECT_ID` absent |
+| **watsonx.ai second judge** | Same correctness prompt on a second model (IBM Granite). Implemented and wired; activates when `WATSONX_API_KEY` and `WATSONX_PROJECT_ID` secrets are set. Not active in the reported runs — secrets were not configured. | No | Informational when active |
 | **Policy fidelity** | Does the agent accurately describe policy rules (K-1, K-2, L-1, A-4, U-1, R-1), recommendation, confidence, and source conflicts? Must not misrepresent KEV, Nuclei, or vendor severity. | No — LLM rubric | Orchestrate (`eval/orchestrate/`) |
 | **Human review safety** | Does the response preserve mandatory human oversight? Must not claim autonomous closure, remediation, risk acceptance, or scanner modification. | No — LLM rubric | Orchestrate (`eval/orchestrate/`) |
 
@@ -112,20 +112,26 @@ both layers, then asserts each key-value pair listed in
 
 Supported check keys:
 
-| Key | Asserts |
-|-----|---------|
-| `recommendation` | `vulncompass_recommendation` field value |
-| `confidence` | `confidence` field value |
-| `policy_rules` | each listed rule is present in `policy_rules` |
-| `kev_listed` | `kev.listed` boolean |
-| `rank` | position of a finding in a prioritized list |
-| `source_conflicts` | non-empty `source_conflicts` list |
-| `review_status` | `review_status` field value |
-| `action` | `action` field value in analyst-decision response |
-| `finding_recommendation` | `recommendation` field inside a prioritized finding |
+| Key | Tool | Asserts |
+|-----|------|---------|
+| `recommendation` | `assess_finding` | `vulncompass_recommendation` field value |
+| `confidence` | `assess_finding` | `confidence` field value |
+| `policy_rules` | `assess_finding` | exact sorted list match against `policy_rules` |
+| `kev_listed` | `assess_finding` | `evidence.kev.listed` boolean |
+| `source_conflicts_contains` | `assess_finding` | substring match against any entry in `source_conflicts` |
+| `review_status` | `assess_finding` / `record_analyst_decision` | `review_status` field value |
+| `action` | `record_analyst_decision` | `action` field value |
+| `modified_recommendation` | `record_analyst_decision` | `modified_recommendation` field value (action=modify only) |
+| `rank1_finding_id` | `prioritize_findings` | `finding_id` of the first ranked finding |
+| `rank1_recommendation` | `prioritize_findings` | `vulncompass_recommendation` of the first ranked finding |
+| `rank1_confidence` | `prioritize_findings` | `confidence` of the first ranked finding |
+| `finding_recommendation` | `prioritize_findings` | `vulncompass_recommendation` for a named finding; value is `{"finding_id": "…", "recommendation": "…"}` |
+| `material_change_detected` | `detect_material_changes` | boolean |
+| `requires_analyst_rereview` | `detect_material_changes` | boolean |
 
-Score = 1 if all checks pass, 0 if any check fails, -1 / N/A if
-`expected_tool_checks` is empty for a row (Q-10 error path).
+Score = 1 if all checks pass, 0 if any check fails, -1 (N/A, excluded from
+pass-rate) if `expected_tool_checks` is empty — used for Q-10, whose tool call
+intentionally errors before returning structured output.
 
 ### Correctness judge internals
 
@@ -146,35 +152,33 @@ Rows where at least one fact is not literally present go through the full
 
 ## 2. Performance Metrics
 
-### Latest results (run #30, gpt-4o-mini agent + judge, fixture mode)
+### Latest results (commit `2e2b457`, gpt-4o-mini agent + judge, fixture mode)
+
+The 87% prose-fidelity result was produced on commit `2e2b457` (tool-result
+span extraction fix). The literal-match pre-check (`cfe9da1`) was committed
+afterward and had not yet run in CI when these figures were recorded. The next
+CI run on `cfe9da1` or later is expected to reach 100% prose fidelity.
 
 | Metric | Score |
 |--------|-------|
 | **Scope** (tool called) | **100%** (15 / 15) |
-| **Tool-result checks** (deterministic) | **100%** (15 / 15) |
-| **Correctness** (LLM judge, informational) | **87%** (13 / 15) |
+| **Tool-result checks** (deterministic) | **100%** (14 / 14 checked; Q-10 excluded) |
+| **Prose fidelity** (LLM judge, informational) | **87%** (13 / 15) |
 
-Run [#29](../../actions) and [#30](../../actions) both achieved 100% on the
-hard-gated deterministic checks. The 87% LLM correctness result in run #30
-reflected false negatives on Q-04 and Q-05 — both rows had `literal_matches:
-true` for every fact; the judge hallucinated `MISSING` verdicts. The
-literal-match pre-check introduced after run #30 eliminates this class of
-failure.
+### Results by question (commit `2e2b457`)
 
-### Results by question (run #30)
-
-| ID | Scope | Tool-result | Correctness | Notes |
-|----|-------|-------------|-------------|-------|
+| ID | Scope | Tool-result | Prose fidelity | Notes |
+|----|-------|-------------|----------------|-------|
 | Q-01 | PASS | PASS | PASS | KEV + confirmed affected → immediate_review |
 | Q-02 | PASS | PASS | PASS | confirmed_not_affected → proposed_closure |
 | Q-03 | PASS | PASS | PASS | applicability unknown → investigate_applicability |
-| Q-04 | PASS | PASS | FAIL* | Rejected CVE + Nuclei conflict — literal pre-check now fixes this |
-| Q-05 | PASS | PASS | FAIL* | F-002 ranks first (KEV) — literal pre-check now fixes this |
+| Q-04 | PASS | PASS | FAIL* | Rejected CVE + Nuclei conflict — literal pre-check (`cfe9da1`) fixes this |
+| Q-05 | PASS | PASS | FAIL* | F-002 ranks first (KEV) — literal pre-check (`cfe9da1`) fixes this |
 | Q-06 | PASS | PASS | PASS | F-004 → proposed_closure despite highest vendor score |
 | Q-07 | PASS | PASS | PASS | KEV addition + CVSS vector change → re-review required |
 | Q-08 | PASS | PASS | PASS | Two-step: assess then approve |
 | Q-09 | PASS | PASS | PASS | Two-step: assess then modify recommendation |
-| Q-10 | PASS | N/A | PASS | Error path: decision without prior assessment |
+| Q-10 | PASS | N/A | PASS | Error path: tool call errors before returning structured output |
 | Q-11 | PASS | PASS | PASS | Priority band disagreement correctly flagged |
 | Q-12 | PASS | PASS | PASS | L-1 rule: confirmed affected + public + high criticality |
 | Q-13 | PASS | PASS | PASS | Two-step: assess then defer |
@@ -182,7 +186,7 @@ failure.
 | Q-15 | PASS | PASS | PASS | Identical snapshots → no material changes |
 
 \* Judge hallucination — `literal_matches` was `true` for every fact;
-corrected by the literal-match pre-check committed after run #30.
+corrected by the literal-match pre-check in commit `cfe9da1`.
 
 ### CI thresholds
 
