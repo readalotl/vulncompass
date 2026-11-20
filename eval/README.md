@@ -56,7 +56,7 @@ The CSV has two judge-input columns:
 | Q-06 | `prioritize_findings` | `proposed_closure`, `confirmed not affected` |
 | Q-07 | `detect_material_changes` | `material_change_detected`, `requires_analyst_rereview` |
 | Q-08 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `approve`, `accelerated_remediation` |
-| Q-09 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `modify`, `routine_remediation` |
+| Q-09 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `modify`, `Routine Remediation` |
 | Q-10 | `record_analyst_decision` (error path) | `Assess the finding before recording an analyst decision`, `error`, `F-NONEXISTENT` |
 | Q-11 | `assess_finding` | `Proposed Closure`, `The priority bands differ`, `does not establish that the vendor is wrong` |
 | Q-12 | `assess_finding` | `accelerated_remediation`, `publicly exposed`, `mission critical` |
@@ -177,7 +177,7 @@ represent a harness failure.
 
 ## 2. Performance Metrics
 
-### Latest results (commit `2e2b457`, gpt-4o-mini agent + judge, fixture mode)
+### Recorded Phoenix results (commit `2e2b457`, gpt-4o-mini agent + judge, fixture mode)
 
 The 87% prose-fidelity result was produced on commit `2e2b457` (tool-result
 span extraction fix). The workflow on commit `cfe9da1` (literal-match
@@ -347,18 +347,18 @@ the agent ever renders prose.
 calls a tool with predictable output. Rows with intentional error paths
 (Q-10) can use an empty `{}` to skip the check gracefully.
 
-### L-3 — Expected facts must be anchored to verbatim tool output
+### L-3 — Expected facts must be stable phrases the agent is required to present
 
-Expected facts written as natural-language phrases (e.g. "Immediate
-Review", "applicability is unknown") are sensitive to how the LLM judge
+Expected facts written loosely are sensitive to how the LLM judge
 paraphrases the agent's answer. The same correct answer can be classified
 differently across runs depending on exact wording.
 
-**Recommendation:** Write expected facts as strings that appear verbatim in
-the tool's JSON output — enum values (`"immediate_review"`), exact error
-messages (`"Assess the finding before recording an analyst decision"`), or
-field names. These are independent of LLM prose style and eliminate a
-class of false failures.
+**Recommendation:** Use stable phrases that the agent is required to
+present. These may be raw tool values (`"immediate_review"`) or
+human-readable display forms (`"Immediate Review"`). Use
+`expected_tool_checks` — not prose facts — to verify exact structured
+output. Case-insensitive matching reduces false failures from
+capitalisation differences.
 
 ### L-4 — LLM judges fabricate MISSING verdicts even when text is present
 
@@ -372,8 +372,9 @@ explicitly mention… in the context of being a conflict").
 When every expected fact is a case-insensitive substring of the answer,
 short-circuit to `score=1` without an API call. The LLM then only sees rows
 where it can genuinely contribute signal (at least one fact is not literally
-present). This eliminates the class of false negatives caused by prompt
-non-compliance without weakening the judge for genuinely ambiguous cases.
+present). This prevents the observed false negatives, but literal matching
+is not complete semantic or negation detection. Retain saved negative
+controls and treat prose scoring as informational.
 
 ### L-5 — System prompt presentation rules directly determine correctness scores
 
