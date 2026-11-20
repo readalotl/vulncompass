@@ -44,10 +44,24 @@ def _extract_tool_output(
     spans: list[dict],
     tool_name: str,
 ) -> dict | None:
-    """Return the parsed JSON output of the first matching tool span, or None."""
+    """Return the parsed JSON output of the first matching tool span, or None.
+
+    The OpenInference LangChain instrumentor records LangChain @tool spans.
+    Phoenix stores the span output in attributes.output.value, which after the
+    attributes. prefix is stripped becomes attrs["output.value"].
+
+    The actual format observed in Phoenix for a LangChain tool span is:
+      {"type": "tool", "data": {"content": "<json string>"}}
+    where the content value is the double-encoded JSON the MCP server returned.
+
+    We also handle the flat-dict case (content already parsed) and the legacy
+    list-of-TextContent format as fallbacks.
+    """
     for span in spans:
         name = span.get("name", "")
         attrs = span.get("attributes", {})
+        # Match by span name first (most reliable for LangChain @tool spans),
+        # then fall back to explicit tool.name / llm.function_call.name attrs.
         actual_name = (
             attrs.get("tool.name")
             or attrs.get("llm.function_call.name")
@@ -58,19 +72,47 @@ def _extract_tool_output(
         raw = attrs.get("output.value") or attrs.get("tool.output") or ""
         if not raw:
             continue
-        # The MCP layer wraps the dict in a list of TextContent objects whose
-        # JSON looks like [{"type": "text", "text": "{ ... }"}].
-        # Try that first, then fall back to parsing raw directly.
         try:
             outer = json.loads(raw)
-            if isinstance(outer, list) and outer and isinstance(outer[0], dict):
-                inner_text = outer[0].get("text", "")
-                if inner_text:
-                    return json.loads(inner_text)
-            if isinstance(outer, dict):
-                return outer
         except (json.JSONDecodeError, TypeError):
-            pass
+            continue
+
+        # Format 1 (observed): {"type": "tool", "data": {"content": "<json>"}}
+        if (
+            isinstance(outer, dict)
+            and outer.get("type") == "tool"
+            and isinstance(outer.get("data"), dict)
+        ):
+            content = outer["data"].get("content", "")
+            if content:
+                try:
+                    parsed = json.loads(content)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        # Format 2: list of TextContent [{"type": "text", "text": "<json>"}]
+        if isinstance(outer, list) and outer and isinstance(outer[0], dict):
+            inner_text = outer[0].get("text", "")
+            if inner_text:
+                try:
+                    parsed = json.loads(inner_text)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        # Format 3: outer is already the tool result dict
+        if isinstance(outer, dict) and "vulncompass_recommendation" in outer:
+            return outer
+        if isinstance(outer, dict) and "ranked_findings" in outer:
+            return outer
+        if isinstance(outer, dict) and "material_change_detected" in outer:
+            return outer
+        if isinstance(outer, dict) and "review_status" in outer:
+            return outer
+
     return None
 
 
@@ -168,6 +210,22 @@ def _check(
             got = str(top.get("confidence", "")).lower()
             results.append(_pass("rank1_confidence", got, want) if got == want
                            else _fail("rank1_confidence", got, want))
+
+    # finding_recommendation: check recommendation for a named finding in ranked_findings.
+    # Format: {"finding_recommendation": {"finding_id": "F-004", "recommendation": "proposed_closure"}}
+    if "finding_recommendation" in checks:
+        spec = checks["finding_recommendation"]
+        fid = spec.get("finding_id", "")
+        want = spec.get("recommendation", "").lower()
+        ranked = tool_output.get("ranked_findings", []) or []
+        match = next((r for r in ranked if r.get("finding_id") == fid), None)
+        if match is None:
+            results.append(_fail("finding_recommendation", None, want,
+                                 f"{fid!r} not found in ranked_findings"))
+        else:
+            got = str(match.get("vulncompass_recommendation", "")).lower()
+            results.append(_pass("finding_recommendation", got, want) if got == want
+                           else _fail("finding_recommendation", got, want))
 
     # ── detect_material_changes ───────────────────────────────────────────────
     if "material_change_detected" in checks:

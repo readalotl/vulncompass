@@ -29,7 +29,7 @@ F-002,synthetic-vendor,V-1002,CVE-2099-0001,ASSET-002,Medium,510,Moderate,2026-1
 F-004,synthetic-vendor,V-1004,CVE-2099-0002,ASSET-004,Critical,910,Critical,2026-10-30T12:00:00Z,confirmed_not_affected,isolated,low,present
 F-005,synthetic-vendor,V-1005,CVE-2099-0002,ASSET-005,High,800,High,2026-10-30T12:00:00Z,confirmed_affected,public,high,absent
 
-The vendor scored F-004 as Critical with the highest risk score (910). What does VulnCompass recommend for it?",proposed_closure | confirmed not affected,"{""tool"": ""assess_finding"", ""recommendation"": ""proposed_closure"", ""policy_rules"": [""A-4""]}"
+The vendor scored F-004 as Critical with the highest risk score (910). What does VulnCompass recommend for it?",proposed_closure | confirmed not affected,"{""tool"": ""prioritize_findings"", ""finding_recommendation"": {""finding_id"": ""F-004"", ""recommendation"": ""proposed_closure""}}"
 Q-07,"Detect material changes for CVE-2099-0002 between these two snapshots.
 
 Previous snapshot (2026-11-01): KEV listed=false, CVSS vector
