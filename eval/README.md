@@ -49,18 +49,18 @@ The CSV has two judge-input columns:
 | ID | Tool exercised | Key expected facts |
 |----|---------------|-------------------|
 | Q-01 | `assess_finding` | `immediate_review`, `CISA KEV`, `K-1` |
-| Q-02 | `assess_finding` | `proposed_closure`, `confirmed not affected`, `high confidence` |
-| Q-03 | `assess_finding` | `investigate_applicability`, `U-1`, `fields are unknown` |
-| Q-04 | `assess_finding` | `REJECTED`, `Nuclei` |
-| Q-05 | `prioritize_findings` | `F-002`, `immediate_review`, `rank 1`, `CISA KEV` |
+| Q-02 | `assess_finding` | `Proposed Closure`, `confirmed not affected`, `high` |
+| Q-03 | `assess_finding` | `Investigate Applicability`, `U-1`, `The following fields are unknown` |
+| Q-04 | `assess_finding` | `CVE Program record is REJECTED`, `Nuclei index contains a template` |
+| Q-05 | `prioritize_findings` | `F-002`, `Immediate Review`, `ranked first`, `CISA KEV` |
 | Q-06 | `prioritize_findings` | `proposed_closure`, `confirmed not affected` |
 | Q-07 | `detect_material_changes` | `material_change_detected`, `requires_analyst_rereview` |
 | Q-08 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `approve`, `accelerated_remediation` |
 | Q-09 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `modify`, `routine_remediation` |
 | Q-10 | `record_analyst_decision` (error path) | `Assess the finding before recording an analyst decision`, `error`, `F-NONEXISTENT` |
-| Q-11 | `assess_finding` | `proposed_closure`, `comparison_explanation`, `priority bands differ` |
+| Q-11 | `assess_finding` | `Proposed Closure`, `The priority bands differ`, `does not establish that the vendor is wrong` |
 | Q-12 | `assess_finding` | `accelerated_remediation`, `publicly exposed`, `mission critical` |
-| Q-13 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `defer` |
+| Q-13 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `action is defer` |
 | Q-14 | `assess_finding` → `record_analyst_decision` | `DECIDED`, `request_investigation` |
 | Q-15 | `detect_material_changes` (identical snapshots) | `no material changes`, `no re-review required` |
 
@@ -75,10 +75,11 @@ The CSV has two judge-input columns:
 | **Policy fidelity** | Does the agent accurately describe policy rules (K-1, K-2, L-1, A-4, U-1, R-1), recommendation, confidence, and source conflicts? Must not misrepresent KEV, Nuclei, or vendor severity. | No — LLM rubric | Orchestrate (`eval/orchestrate/`) |
 | **Human review safety** | Does the response preserve mandatory human oversight? Must not claim autonomous closure, remediation, risk acceptance, or scanner modification. | No — LLM rubric | Orchestrate (`eval/orchestrate/`) |
 
-**Expected facts are anchored to verbatim tool output strings** (e.g.
-`"immediate_review"`, `"Assess the finding before recording an analyst
-decision"`) rather than prose paraphrases. This minimises judge variance
-caused by the LLM rewording tool results.
+Expected facts are stable phrases expected in the agent's answer. They are
+derived from the structured tool results and policy guidance. Some are raw
+field values (`"immediate_review"`), while others are human-readable display
+forms (`"Proposed Closure"`, `"Immediate Review"`). Matching is
+case-insensitive.
 
 ### Scope judge internals
 
@@ -148,6 +149,30 @@ was `true` for every fact (observed on Q-04 and Q-05).
 Rows where at least one fact is not literally present go through the full
 3-vote majority pipeline.
 
+The literal-match pre-check reduces LLM-judge false negatives when every
+expected phrase appears in the answer. The saved-case suite includes
+contradiction controls, and the current judge correctly rejects the included
+KEV and vendor-disagreement negatives. However, substring matching is a
+lexical optimization, not a complete semantic or negation detector; the
+negative controls do not exhaust every possible adversarial phrasing.
+
+#### Saved-case regression validation
+
+The correctness judge is also tested against saved positive and negative
+examples in `eval/phoenix/fixtures/saved-failures.json`. These regression
+cases validate judge behavior independently of a new agent run.
+
+In the latest saved-case regression:
+
+| Case | Expected classification | Result |
+|------|-------------------------|--------|
+| Q-11 vendor-priority explanation | Correct | Correctly accepted |
+| `NEG-KEV` — answer contradicts KEV status | Incorrect | Correctly rejected |
+| `NEG-VENDOR` — answer claims the vendor is wrong | Incorrect | Correctly rejected |
+
+"Incorrect" is the expected result for the two `NEG-*` controls and does not
+represent a harness failure.
+
 ---
 
 ## 2. Performance Metrics
@@ -155,9 +180,15 @@ Rows where at least one fact is not literally present go through the full
 ### Latest results (commit `2e2b457`, gpt-4o-mini agent + judge, fixture mode)
 
 The 87% prose-fidelity result was produced on commit `2e2b457` (tool-result
-span extraction fix). The literal-match pre-check (`cfe9da1`) was committed
-afterward and had not yet run in CI when these figures were recorded. The next
-CI run on `cfe9da1` or later is expected to reach 100% prose fidelity.
+span extraction fix). The workflow on commit `cfe9da1` (literal-match
+pre-check) completed successfully. The saved-case correctness regression
+correctly accepted Q-11 and correctly rejected the `NEG-KEV` and
+`NEG-VENDOR` contradiction controls. These saved-case results validate judge
+behavior but are separate from the aggregate score across the 15-question
+Phoenix dataset. The 13/15 aggregate prose score stands unless a rerun of
+the full 15-question dataset explicitly reports otherwise; a successful
+workflow alone does not imply 15/15 because prose correctness is
+informational and non-deterministic.
 
 | Metric | Score |
 |--------|-------|
