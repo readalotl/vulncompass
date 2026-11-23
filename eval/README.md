@@ -167,57 +167,56 @@ In the latest saved-case regression:
 | Case | Expected classification | Result |
 |------|-------------------------|--------|
 | Q-11 vendor-priority explanation | Correct | Correctly accepted |
+| Q-14 two-step assess + request_investigation | Incorrect (LLM judge hallucination) | Saved for tracking |
 | `NEG-KEV` — answer contradicts KEV status | Incorrect | Correctly rejected |
 | `NEG-VENDOR` — answer claims the vendor is wrong | Incorrect | Correctly rejected |
 
 "Incorrect" is the expected result for the two `NEG-*` controls and does not
-represent a harness failure.
+represent a harness failure. Q-14 is saved because the LLM judge marked it
+incorrect despite `DECIDED` being literally present in the answer; it is a
+known judge hallucination, not an agent defect.
 
 ---
 
 ## 2. Performance Metrics
 
-### Recorded Phoenix results (commit `2e2b457`, gpt-4o-mini agent + judge, fixture mode)
+### Recorded Phoenix results (gpt-4o-mini agent + judge, fixture mode)
 
-The 87% prose-fidelity result was produced on commit `2e2b457` (tool-result
-span extraction fix). The workflow on commit `cfe9da1` (literal-match
-pre-check) completed successfully. The saved-case correctness regression
-correctly accepted Q-11 and correctly rejected the `NEG-KEV` and
-`NEG-VENDOR` contradiction controls. These saved-case results validate judge
-behavior but are separate from the aggregate score across the 15-question
-Phoenix dataset. The 13/15 aggregate prose score stands unless a rerun of
-the full 15-question dataset explicitly reports otherwise; a successful
-workflow alone does not imply 15/15 because prose correctness is
-informational and non-deterministic.
+The latest full run produced a 93% prose-fidelity score (14/15). The single
+remaining failure (Q-14) is a known LLM judge hallucination: `DECIDED` is
+literally present in the agent answer (`literal_matches: true`) but the judge
+still marked the row incorrect. The deterministic tool-result checks passed
+100% and the scope check passed 100%, so both hard gates are green.
 
 | Metric | Score |
 |--------|-------|
 | **Scope** (tool called) | **100%** (15 / 15) |
 | **Tool-result checks** (deterministic) | **100%** (14 / 14 checked; Q-10 excluded) |
-| **Prose fidelity** (LLM judge, informational) | **87%** (13 / 15) |
+| **Prose fidelity** (LLM judge, informational) | **93%** (14 / 15) |
 
-### Results by question (commit `2e2b457`)
+### Results by question (latest run, gpt-4o-mini agent + judge)
 
 | ID | Scope | Tool-result | Prose fidelity | Notes |
 |----|-------|-------------|----------------|-------|
 | Q-01 | PASS | PASS | PASS | KEV + confirmed affected → immediate_review |
 | Q-02 | PASS | PASS | PASS | confirmed_not_affected → proposed_closure |
 | Q-03 | PASS | PASS | PASS | applicability unknown → investigate_applicability |
-| Q-04 | PASS | PASS | FAIL* | Rejected CVE + Nuclei conflict — literal pre-check (`cfe9da1`) fixes this |
-| Q-05 | PASS | PASS | FAIL* | F-002 ranks first (KEV) — literal pre-check (`cfe9da1`) fixes this |
+| Q-04 | PASS | PASS | PASS | Rejected CVE + Nuclei conflict |
+| Q-05 | PASS | PASS | PASS | F-002 ranks first (KEV) |
 | Q-06 | PASS | PASS | PASS | F-004 → proposed_closure despite highest vendor score |
 | Q-07 | PASS | PASS | PASS | KEV addition + CVSS vector change → re-review required |
 | Q-08 | PASS | PASS | PASS | Two-step: assess then approve |
 | Q-09 | PASS | PASS | PASS | Two-step: assess then modify recommendation |
-| Q-10 | PASS | N/A | PASS | Error path: tool call errors before returning structured output |
+| Q-10 | PASS | N/A | PASS | Error path: tool raises ValueError before returning structured output |
 | Q-11 | PASS | PASS | PASS | Priority band disagreement correctly flagged |
 | Q-12 | PASS | PASS | PASS | L-1 rule: confirmed affected + public + high criticality |
 | Q-13 | PASS | PASS | PASS | Two-step: assess then defer |
-| Q-14 | PASS | PASS | PASS | Two-step: assess then request_investigation |
+| Q-14 | PASS | PASS | FAIL† | Two-step: assess then request_investigation |
 | Q-15 | PASS | PASS | PASS | Identical snapshots → no material changes |
 
-\* Judge hallucination — `literal_matches` was `true` for every fact;
-corrected by the literal-match pre-check in commit `cfe9da1`.
+† LLM judge hallucination — `DECIDED` has `literal_match: true` in the agent
+answer but the judge still returned incorrect. Saved in `saved-failures.json`
+for tracking. Tool-result check (hard gate) passed.
 
 ### CI thresholds
 

@@ -8,13 +8,29 @@
       "does not establish that the vendor is wrong"
     ],
     "answer": "VulnCompass recommends **Proposed Closure** for finding F-009. The vendor scored this Critical, but because the asset is confirmed not affected, VulnCompass applies rule A-4 and proposes closure. The priority bands differ between the vendor and VulnCompass; this does not establish that the vendor is wrong.",
-    "judge_label": "incorrect",
-    "judge_explanation": "The answer mentions proposed closure but does not contain the literal text 'comparison_explanation', so the fact is missing.",
+    "judge_label": "correct",
+    "judge_explanation": "All three expected facts are supported: 'Proposed Closure' is stated explicitly, 'The priority bands differ' is stated explicitly, and 'this does not establish that the vendor is wrong' is quoted verbatim.",
     "literal_matches": {
-      "proposed_closure": false,
-      "comparison_explanation": false,
-      "priority bands differ": true
+      "Proposed Closure": true,
+      "The priority bands differ": true,
+      "does not establish that the vendor is wrong": true
     },
     "trace_id": "00000000000000000000000000000001"
+  },
+  {
+    "id": "Q-14",
+    "question": "First assess finding F-012 for CVE-2099-0002 on ASSET-012 (synthetic-vendor,\nV-1012, applicability unknown, public exposure, high mission criticality,\nno compensating controls, vendor severity High). Then record a\nrequest_investigation decision for analyst \"analyst-demo\" with rationale:\nasset ownership unclear \u2014 routing to infrastructure team for applicability\nconfirmation.",
+    "expected_facts": [
+      "DECIDED",
+      "request_investigation"
+    ],
+    "answer": "The assessment for finding **F-012** related to **CVE-2099-0002** on **ASSET-012** has been completed. Here are the details:\n\n- **VulnCompass Recommendation**: Investigate Applicability\n- **Confidence Level**: Low\n- **Policy Rules Fired**: U-1\n- **Rationale**: The following fields are unknown: applicability; missing information must not reduce priority.\n- **Missing Information**: Applicability is unknown.\n- **Source Conflicts**: None.\n\nThe decision to **request investigation** has been recorded successfully:\n\n- **Review Status**: DECIDED\n- **Action**: Request Investigation\n- **Rationale**: Asset ownership unclear \u2014 routing to infrastructure team for applicability confirmation.\n- **Analyst ID**: analyst-demo\n\nIf you need further assistance, feel free to ask!",
+    "judge_label": "incorrect",
+    "judge_explanation": "The assistant's answer lacks the fact of DECIDED despite adequately addressing others such as recording a request investigation and providing a rationale. Therefore, it is deemed incorrect.",
+    "literal_matches": {
+      "DECIDED": true,
+      "request_investigation": false
+    },
+    "trace_id": "aae968dc0965fe43ea5904d59fcb8902"
   }
 ]
